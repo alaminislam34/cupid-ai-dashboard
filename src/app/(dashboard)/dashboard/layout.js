@@ -5,11 +5,11 @@ export default function DashboardLayout({ children }) {
   return (
     <html lang="en">
       <body className={`antialiased`}>
-        <section className="flex flex-row">
-          <div className="m-4">
+        <section className="flex flex-row m-4 gap-6">
+          <div >
             <Sidebar />
           </div>
-          <div>{children}</div>
+          <div className="w-full px-4">{children}</div>
         </section>
       </body>
     </html>

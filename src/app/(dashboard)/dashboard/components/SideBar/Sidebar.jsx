@@ -55,7 +55,7 @@ export default function Sidebar() {
           <li key={i}>
             <Link
               className={`py-2 lg:py-3 px-4 rounded-2xl ${
-                path === href ? "bg-white text-secondary2" : ""
+                path === href ? "bg-white text-secondary2" : " text-white"
               } hover:bg-white hover:text-secondary2 flex items-center duration-300 gap-2`}
               href={href}
             >
