@@ -41,7 +41,7 @@ export const links = [
 export default function Sidebar() {
   const path = usePathname();
   return (
-    <div className="w-[300px] h-[96vh] my-auto bg-linear-to-r from-[#FB665B] via-[#CE51A6] to-[#8951D5] p-10 rounded-2xl">
+    <div className="w-[300px] h-[96vh] my-auto bg-linear-to-r from-[#FB665B] via-[#CE51A6] to-[#8951D5] p-10 rounded-2xl sticky top-5">
       <Image
         src={"/icons/logo2.png"}
         height={78}

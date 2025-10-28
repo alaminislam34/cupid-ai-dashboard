@@ -5,6 +5,7 @@ import { HiUsers } from "react-icons/hi2";
 import { RiRobot3Line } from "react-icons/ri";
 import { HiOutlineInboxIn } from "react-icons/hi";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa6";
+import UserGrowthChart from "./components/Chart/Chart";
 
 // --- 1. OVERVIEW DATA (Unchanged) ---
 export const overviews = [
@@ -142,17 +143,19 @@ export default function DashboardPage() {
           className="flex justify-end mt-6 space-x-2"
         >
           <div className="flex items-center justify-center">
-            <p className="text-secondary">{currentPage} - {pageNumbers.length} of 10</p>
+            <p className="text-secondary">
+              {currentPage} - {pageNumbers.length} of 10
+            </p>
           </div>
 
           {/* Previous Button */}
           <button
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
-            className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-150 border ${
+            className={`p-2 ${
               currentPage === 1
                 ? "opacity-30 cursor-not-allowed"
-                : "bg-[#B9DAFE] text-gray-700 border-gray-300 hover:bg-gray-100 cursor-pointer"
+                : "text-gray-700 cursor-pointer"
             }`}
           >
             <FaChevronLeft />
@@ -162,14 +165,24 @@ export default function DashboardPage() {
           <button
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-150 border ${
+            className={`p-2 ${
               currentPage === totalPages
                 ? "opacity-30 cursor-not-allowed"
-                : "bg-[#B9DAFE] text-gray-700 border-gray-300 hover:bg-gray-100 cursor-pointer"
+                : "text-gray-700 cursor-pointer"
             }`}
           >
             <FaChevronRight />
           </button>
+        </div>
+
+        <br />
+        <br />
+
+        <div>
+          <h1 className="text-[#1D1B20] font-semibold text-2xl lg:text-4xl mb-6">
+            Analytics Overview
+          </h1>
+          <UserGrowthChart />
         </div>
       </div>
     </div>
