@@ -6,24 +6,50 @@ import { useState } from "react";
 import { FaApple, FaRegEye, FaRegEyeSlash } from "react-icons/fa6";
 import { toast } from "react-toastify";
 export default function SignInForm({ setForgotPass }) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("mi3548514@gmail.com");
+  const [password, setPassword] = useState("123456");
   const [showPass, setShowPass] = useState(false);
-  const navigate = useRouter();
+  const router = useRouter();
 
-  //   todo: handle sign in
-  const handleSignIn = (e) => {
+  // ✅ handle sign in
+  const handleSignIn = async (e) => {
     e.preventDefault();
 
-    if (!email || !password) {
+    // 🔹 Basic validation
+    if (!email.trim() || !password.trim()) {
       toast.error("Please enter both email and password.");
       return;
-    } else {
-      toast.success("Signed in successfully!");
-      localStorage.setItem("user", JSON.stringify({ email, login: true }));
+    }
 
-      // navigate to dashboard
-      navigate.push("/dashboard");
+    try {
+      // 🔹 Future: Replace this section with real API request
+      // Example:
+      // const res = await fetch("/api/login", {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify({ email, password }),
+      // });
+      // const data = await res.json();
+
+      // if (res.ok) {
+      //   localStorage.setItem("user", JSON.stringify({ ...data.user, login: true }));
+      //   toast.success("Signed in successfully!");
+      //   router.push("/dashboard");
+      // } else {
+      //   toast.error(data.message || "Invalid email or password.");
+      // }
+
+      // 🔹 Temporary success simulation (for now)
+      localStorage.setItem(
+        "user",
+        JSON.stringify({ email, login: true, timestamp: Date.now() })
+      );
+
+      toast.success("Signed in successfully!");
+      router.push("/dashboard");
+    } catch (error) {
+      console.error("Login error:", error);
+      toast.error("Something went wrong. Please try again later.");
     }
   };
 
@@ -74,6 +100,7 @@ export default function SignInForm({ setForgotPass }) {
               <span className="text-2xl font-semibold">Email</span>
               <input
                 type="email"
+                value={email}
                 onChange={(v) => setEmail(v.target.value)}
                 className="py-3 lg:py-5 border border-secondary rounded-[20px] px-4 shadow-[0px_4px_12px_0px_#0000000D]"
                 placeholder="example@gmail.com"
@@ -85,7 +112,8 @@ export default function SignInForm({ setForgotPass }) {
               <span className="text-2xl font-semibold">Password</span>
               <div className="relative">
                 <input
-                  type="password"
+                  type={showPass ? "text" : "password"}
+                  value={password}
                   onChange={(v) => setPassword(v.target.value)}
                   className="py-3 lg:py-5 border border-secondary rounded-[20px] px-4 shadow-[0px_4px_12px_0px_#0000000D] pr-12 w-full"
                   placeholder="********"

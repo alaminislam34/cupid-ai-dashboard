@@ -2,13 +2,13 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import React from "react";
+import React, { useEffect } from "react";
 import { BiBarChartSquare } from "react-icons/bi";
 import { GrUserSettings } from "react-icons/gr";
 import { HiUsers } from "react-icons/hi2";
 import { TbReportAnalytics } from "react-icons/tb";
 import { IoSettings } from "react-icons/io5";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { FiLogOut } from "react-icons/fi";
 import { toast } from "react-toastify";
 
@@ -42,13 +42,37 @@ export const links = [
 
 export default function Sidebar() {
   const path = usePathname();
+  const router = useRouter();
 
-  // logout handler
+  // log out handler
   const handleLogout = () => {
-    localStorage.removeItem("user")
-    toast.success("Log out successfully")
-  }
+    try {
+      // Remove user from localStorage
+      localStorage.removeItem("user");
 
+      // Show toast notification
+      toast.success("Logged out successfully!");
+
+      // Redirect to login or home page
+      const router = useRouter();
+      router.push("/");
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("Something went wrong while logging out.");
+    }
+  };
+
+  useEffect(() => {
+    // Check user from localStorage
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    // condition: if no user or login not true → redirect
+    if (!user || !user.login) {
+      router.push("/");
+    } else {
+      router.push("/dashboard");
+    }
+  }, [router]);
 
   return (
     <div className="w-[300px] h-[96vh] my-auto bg-linear-to-r from-[#FB665B] via-[#CE51A6] to-[#8951D5] p-10 rounded-2xl sticky top-5 flex flex-col justify-between">
@@ -90,7 +114,10 @@ export default function Sidebar() {
           </h3>
         </div>
         <br />
-        <button onClick={handleLogout} className="text-lg font-semibold text-secondary2 flex items-center justify-center gap-2 py-3 w-full bg-white rounded-2xl cursor-pointer">
+        <button
+          onClick={handleLogout}
+          className="text-lg font-semibold text-secondary2 flex items-center justify-center gap-2 py-3 w-full bg-white rounded-2xl cursor-pointer"
+        >
           <FiLogOut /> Log out
         </button>
       </div>

@@ -6,18 +6,40 @@ import { toast } from "react-toastify";
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const isDisabled = email.trim() === "";
-  const [emailError, setEmailError] = useState(false);
 
-  const handleSendResetLink = (e) => {
+  const handleSendResetLink = async (e) => {
     e.preventDefault();
 
-    if(!email) setEmailError(true);
-    else setEmailError(false);
+    // Trim email to avoid spaces
+    const trimmedEmail = email.trim();
 
-   if(email) {
-    toast.success("Reset link sent to your email!");
-   }
-  }
+    // Validation
+    if (!trimmedEmail) {
+      toast.error("Please enter your email.");
+      return;
+    }
+
+    try {
+      // 🔹 Placeholder for backend API call
+      // const response = await fetch("/api/send-reset-link", {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify({ email: trimmedEmail }),
+      // });
+      // const data = await response.json();
+      // if (response.ok) {
+      //   toast.success(data.message || "Reset link sent to your email!");
+      // } else {
+      //   toast.error(data.message || "Failed to send reset link.");
+      // }
+
+      // Temporary simulation
+      toast.success("Reset link sent to your email!");
+    } catch (error) {
+      console.error("Error sending reset link:", error);
+      toast.error("Something went wrong. Please try again later.");
+    }
+  };
 
   return (
     <div>
@@ -51,7 +73,11 @@ export default function ForgotPassword() {
               account.
             </p>
 
-            <button type="submit" disabled={isDisabled} className="py-3 lg:py-5 w-full rounded-[20px] bg-linear-to-r from-[#FB665B] via-[#CE51A6] to-[#8951D5] text-white font-semibold cursor-pointer mt-6">
+            <button
+              type="submit"
+              disabled={isDisabled}
+              className="py-3 lg:py-5 w-full rounded-[20px] bg-linear-to-r from-[#FB665B] via-[#CE51A6] to-[#8951D5] text-white font-semibold cursor-pointer mt-6"
+            >
               Send reset link
             </button>
           </form>
