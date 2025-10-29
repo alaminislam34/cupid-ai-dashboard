@@ -47,15 +47,9 @@ export default function Sidebar() {
   // log out handler
   const handleLogout = () => {
     try {
-      // Remove user from localStorage
       localStorage.removeItem("user");
-
-      // Show toast notification
       toast.success("Logged out successfully!");
-
-      // Redirect to login or home page
-      const router = useRouter();
-      router.push("/");
+      router.push("/"); // use top-level router
     } catch (error) {
       console.error("Logout error:", error);
       toast.error("Something went wrong while logging out.");
@@ -63,17 +57,14 @@ export default function Sidebar() {
   };
 
   useEffect(() => {
-    // Check user from localStorage
     const user = JSON.parse(localStorage.getItem("user"));
-
-    // condition: if no user or login not true → redirect
     if (!user || !user.login) {
-      router.push("/");
-    } else {
-      router.push("/dashboard");
+      router.push("/"); // redirect to login if not logged in
     }
+    // Don't redirect if already logged in; sidebar is on dashboard pages
   }, [router]);
 
+  
   return (
     <div className="w-[300px] h-[96vh] my-auto bg-linear-to-r from-[#FB665B] via-[#CE51A6] to-[#8951D5] p-10 rounded-2xl sticky top-5 flex flex-col justify-between">
       <div>
