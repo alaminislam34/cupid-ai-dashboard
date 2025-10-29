@@ -8,8 +8,6 @@ import { FaChevronLeft, FaChevronRight } from "react-icons/fa6";
 import { TiEdit } from "react-icons/ti";
 import { RiDeleteBinLine } from "react-icons/ri";
 
-
-
 // --- 1. OVERVIEW DATA (Unchanged) ---
 export const overviews = [
   {
@@ -22,7 +20,6 @@ export const overviews = [
     value: "524",
     icon: <HiUsers className="text-3xl text-white" />,
   },
- 
 ];
 
 // --- 2. DUMMY USER DATA FOR PAGINATION ---
@@ -99,7 +96,7 @@ export default function UserManagemenrt() {
               <th className="py-3 px-6 text-left">Email</th>
               <th className="py-3 px-6 text-left">Age</th>
               <th className="py-3 px-6 text-left">Gender</th>
-              <th className="py-3 px-6 text-left">Subscription</th>
+              <th className="py-3 px-6 text-left">End</th>
             </tr>
           </thead>
           <tbody className="text-gray-600 text-sm font-light divide-y divide-[#B9DAFE]">
@@ -119,9 +116,10 @@ export default function UserManagemenrt() {
                 <td className="py-3 px-6 text-left">{user.email}</td>
                 <td className="py-3 px-6 text-left">{user.age}</td>
                 <td className="py-3 px-6 text-left">{user.gender}</td>
-                <td className="py-3 px-6 text-left flex items-center gap-6">
-                  <TiEdit className="text-2xl"/>
-                  <RiDeleteBinLine className="text-2xl text-red-600"/>
+                <td className="py-3 px-6 text-left">
+                  <button className="cursor-pointer">
+                    <RiDeleteBinLine className="text-2xl text-red-600 inline" />
+                  </button>
                 </td>
               </tr>
             ))}
@@ -168,8 +166,6 @@ export default function UserManagemenrt() {
 
         <br />
         <br />
-
-      
       </div>
     </div>
   );

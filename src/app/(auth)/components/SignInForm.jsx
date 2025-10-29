@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FaApple, FaRegEye, FaRegEyeSlash } from "react-icons/fa6";
 import { toast } from "react-toastify";
@@ -8,8 +9,9 @@ export default function SignInForm({ setForgotPass }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
+  const navigate = useRouter();
 
-//   todo: handle sign in
+  //   todo: handle sign in
   const handleSignIn = (e) => {
     e.preventDefault();
 
@@ -17,8 +19,11 @@ export default function SignInForm({ setForgotPass }) {
       toast.error("Please enter both email and password.");
       return;
     } else {
-        toast.success("Signed in successfully!");
-        localStorage.setItem("user", JSON.stringify({email, login: true}))
+      toast.success("Signed in successfully!");
+      localStorage.setItem("user", JSON.stringify({ email, login: true }));
+
+      // navigate to dashboard
+      navigate.push("/dashboard");
     }
   };
 
