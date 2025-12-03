@@ -1,8 +1,8 @@
 // components/UserGrowthChart.jsx
-'use client';
+"use client";
 
-import React from 'react';
-import { Line } from 'react-chartjs-2';
+import React, { useMemo } from "react";
+import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -12,10 +12,9 @@ import {
   Title,
   Tooltip,
   Legend,
-  Filler, // Needed for the shaded area
-} from 'chart.js';
+  Filler,
+} from "chart.js";
 
-// Register necessary Chart.js components
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -27,101 +26,125 @@ ChartJS.register(
   Filler
 );
 
-const UserGrowthChart = () => {
-  // --- 1. DATA (Mimicking the visual) ---
-  const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'];
+/**
+ * ইউজারদের জয়েনিং ডেট থেকে মাসিক ক্রমবর্ধমান গ্রোথ (Cumulative Growth) গণনা করে।
+ * @param {Array} users - API থেকে আসা ইউজারদের অ্যারে (date_joined ফিল্ড সহ)।
+ * @returns {Object} { labels: Array<string>, dataPoints: Array<number> }
+ */
+const processUserGrowthData = (users) => {
+  if (!users || users.length === 0) {
+    return { labels: [], dataPoints: [] };
+  } // ডেট অনুসারে সর্ট করা
 
-  // Approximate data points based on the image's curve
-  const dataPoints = [60, 120, 75, 160, 680, 700, 800];
+  const sortedUsers = [...users].sort(
+    (a, b) => new Date(a.date_joined) - new Date(b.date_joined)
+  );
+
+  const growthMap = new Map();
+  let cumulativeCount = 0; // ক্রমপুঞ্জিত সংখ্যা গণনা
+
+  sortedUsers.forEach((user) => {
+    const joinDate = new Date(user.date_joined); // মাস ও বছর হিসেবে লেবেল (e.g., Nov 2025)
+    const monthYear = joinDate.toLocaleDateString("en-US", {
+      month: "short",
+      year: "numeric",
+    });
+
+    cumulativeCount++; // একই মাসের জন্য শেষ মানটিই cumulative count হবে
+    growthMap.set(monthYear, cumulativeCount);
+  }); // সব লেবেল এবং ডেটা পয়েন্ট অ্যারে তৈরি
+
+  const labels = Array.from(growthMap.keys());
+  const dataPoints = Array.from(growthMap.values());
+
+  return { labels, dataPoints };
+};
+
+const UserGrowthChart = ({ apiResponse }) => {
+  // useMemo ব্যবহার করে ডেটা প্রসেসিং
+  const { labels, dataPoints } = useMemo(() => {
+    return processUserGrowthData(apiResponse?.users);
+  }, [apiResponse]);
+
+  if (dataPoints.length === 0) {
+    return (
+      <div className="p-4 bg-white rounded-xl shadow-[0px_10px_35px_0px_#00000008] border-2 border-[#ececec] w-full h-[300px] flex items-center justify-center">
+               {" "}
+        <p className="text-gray-500">
+                    No user growth data available to display.        {" "}
+        </p>
+             {" "}
+      </div>
+    );
+  }
 
   const chartData = {
     labels,
     datasets: [
       {
+        label: "Cumulative Users",
         data: dataPoints,
-        borderColor: '#22c55e', // A bright green, or a custom Tailwind color
-        backgroundColor: 'rgba(34, 197, 94, 0.1)', // Light, semi-transparent shade for the fill
-        fill: 'origin', // Fill area under the line
-        tension: 0.4, // Smooth curve
-        pointRadius: 0, // No points visible on the line
+        borderColor: "#22c55e",
+        backgroundColor: "rgba(34, 197, 94, 0.1)",
+        fill: "origin",
+        tension: 0.4,
+        pointRadius: 4, // ডেটা পয়েন্ট দেখানোর জন্য
         borderWidth: 2,
       },
     ],
   };
 
-  // --- 2. OPTIONS (Styling and Configuration) ---
   const options = {
     responsive: true,
-    maintainAspectRatio: false, // Allows you to control the size with Tailwind
+    maintainAspectRatio: false,
     plugins: {
-      legend: {
-        display: false, // Hide the legend
-      },
-      tooltip: {
-        mode: 'index',
-        intersect: false,
-      },
-      title: {
-        display: false,
-      },
+      legend: { display: false },
+      tooltip: { mode: "index", intersect: false },
+      title: { display: false },
     },
     scales: {
       x: {
-        grid: {
-          display: false, // Hide vertical grid lines
-        },
-        ticks: {
-          color: '#64748b', // Text color for labels (slate-500)
-          font: {
-            size: 12,
-          },
-        },
-        border: {
-          display: false, // Hide the x-axis line
-        },
+        grid: { display: false },
+        ticks: { color: "#64748b" },
+        border: { display: true },
       },
       y: {
-        min: 10, // Start y-axis close to the bottom
-        // Custom tick values to match the chart's labels (10, 50, 150, 500, 1k+)
+        min: 0,
         ticks: {
-          color: '#64748b', // Text color for labels (slate-500)
-          stepSize: 100, // This is hard to match exactly, so we'll use a callback
+          color: "#64748b",
           callback: function (value) {
-            if (value === 10) return '10';
-            if (value === 50) return '50';
-            if (value === 150) return '150';
-            if (value === 500) return '500';
-            if (value === 1000) return '1k+'; // Custom label for the top
-            return null; // Hide other labels
-          },
-          font: {
-            size: 12,
+            return value.toLocaleString();
           },
         },
         grid: {
-          color: '#f1f5f9', // Light gray color for horizontal grid lines (slate-100)
-          borderDash: [5, 5], // Dashed lines
-          drawBorder: false, // Hide the y-axis line
+          color: "#f1f5f9",
+          borderDash: [5, 5],
+          drawBorder: false,
         },
       },
     },
     elements: {
       line: {
-        // Use a slight curve for the line
-        cubicInterpolationMode: 'monotone',
+        cubicInterpolationMode: "monotone",
       },
     },
   };
 
-  // --- 3. RENDER ---
   return (
     <div className="p-4 bg-white rounded-xl shadow-[0px_10px_35px_0px_#00000008] border-2 border-[#ececec] w-full h-[300px]">
-      <h2 className="text-xl font-semibold text-gray-800">Monthly User Growth</h2>
-      <p className="text-sm text-gray-500 mb-4">Overall users join over the past year</p>
-      {/* Chart container with a defined height */}
+           {" "}
+      <h2 className="text-xl font-semibold text-gray-800">
+                Monthly Cumulative User Growth      {" "}
+      </h2>
+           {" "}
+      <p className="text-sm text-gray-500 mb-4">
+                Users joined up to the current date.      {" "}
+      </p>
+           {" "}
       <div className="relative h-[calc(100%-60px)]">
-        <Line data={chartData} options={options} />
+                <Line data={chartData} options={options} />     {" "}
       </div>
+         {" "}
     </div>
   );
 };

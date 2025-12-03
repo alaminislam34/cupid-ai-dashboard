@@ -1,68 +1,92 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { HiUsers } from "react-icons/hi2";
 import { RiRobot3Line } from "react-icons/ri";
 import { HiOutlineInboxIn } from "react-icons/hi";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa6";
 import UserGrowthChart from "./components/Chart/Chart";
+import axios from "axios";
+import Cookies from "js-cookie";
 
-// --- 1. OVERVIEW DATA (Unchanged) ---
-export const overviews = [
-  {
-    title: "Total Users",
-    value: "1524",
-    icon: <HiUsers className="text-3xl text-white" />,
-  },
-  {
-    title: "Total Created Bots",
-    value: "524",
-    icon: <RiRobot3Line className="text-3xl text-white" />,
-  },
-  {
-    title: "Total Subscribers",
-    value: "824",
-    icon: <HiOutlineInboxIn className="text-3xl text-white" />,
-  },
-];
+const ITEMS_PER_PAGE = 10;
 
-// --- 2. DUMMY USER DATA FOR PAGINATION ---
-const ALL_USERS = Array.from({ length: 25 }, (_, i) => ({
-  name: `User ${i + 1}`,
-  username: `user_${i + 1}`,
-  email: `user${i + 1}@example.com`,
-  age: 20 + (i % 10),
-  gender: i % 2 === 0 ? "Male" : "Female",
-  subscription: i % 3 === 0 ? "Basic" : "Premium",
-}));
-
-const ITEMS_PER_PAGE = 10; // Set the number of rows per page
-
-// --- 3. REACT COMPONENT WITH PAGINATION LOGIC ---
 export default function DashboardPage() {
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalUsers, setTotalUsers] = useState(0);
 
-  // Calculate total pages
-  const totalPages = Math.ceil(ALL_USERS.length / ITEMS_PER_PAGE);
+  useEffect(() => {
+    const fetchTotalUsers = async () => {
+      const accessToken = Cookies.get("accessToken");
 
-  // Determine the data slice for the current page
+      if (!accessToken) {
+        console.error("Access token not found.");
+        return;
+      }
+
+      const config = {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      };
+
+      try {
+        const res = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/admin/total-users/`,
+          config
+        );
+
+        if (res.status === 200) {
+          setTotalUsers(res.data);
+          console.log("Total Users Fetched:", res.data);
+        }
+      } catch (error) {
+        console.error(
+          "Failed to fetch total users:",
+          error.response ? error.response.data : error.message
+        );
+      }
+    };
+
+    fetchTotalUsers();
+  }, []);
+
+  const totalPages = Math.ceil(totalUsers.total_users / ITEMS_PER_PAGE);
+
   const currentItems = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
     const end = start + ITEMS_PER_PAGE;
-    return ALL_USERS.slice(start, end);
+    return totalUsers.users?.slice(start, end);
   }, [currentPage]);
 
-  // Handle page change
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
     }
   };
 
-  // Generate an array of page numbers
   const pageNumbers = useMemo(() => {
     return Array.from({ length: totalPages }, (_, i) => i + 1);
   }, [totalPages]);
+
+  const overviews = [
+    {
+      title: "Total Users",
+      value: totalUsers.total_users || 0,
+      icon: <HiUsers className="text-3xl text-white" />,
+    },
+    {
+      title: "Total Created Bots",
+      value: "524",
+      icon: <RiRobot3Line className="text-3xl text-white" />,
+    },
+    {
+      title: "Total Subscribers",
+      value: 0,
+      icon: <HiOutlineInboxIn className="text-3xl text-white" />,
+    },
+  ];
 
   return (
     <div>
@@ -70,10 +94,9 @@ export default function DashboardPage() {
         Dashboard Overview
       </h1>
 
-      {/* Overview Cards */}
       <div>
         <div className="flex flex-wrap items-center gap-6 w-full">
-          {overviews.map(({ title, value, icon }, i) => (
+          {overviews?.map(({ title, value, icon }, i) => (
             <div
               key={i}
               className="p-4 rounded-2xl border border-secondary flex-1 space-y-4"
@@ -91,13 +114,12 @@ export default function DashboardPage() {
 
         <br />
 
-        {/* User Table (using Tailwind classes as provided) */}
         <table className="rounded-2xl border border-[#B9DAFE] w-full user-data-table shadow-lg overflow-hidden ">
           <thead>
             <tr className="bg-[#EAF7FF] text-gray-700 text-sm leading-normal">
               <th className="py-3 px-6 text-left">Name</th>
               <th className="py-3 px-6 text-left">Username</th>
-              <th className="py-3 px-6 text-left">Email</th>
+              {/* <th className="py-3 px-6 text-left">Email</th> */}
               <th className="py-3 px-6 text-left">Age</th>
               <th className="py-3 px-6 text-left">Gender</th>
               <th className="py-3 px-6 text-left">Subscription</th>
@@ -105,7 +127,7 @@ export default function DashboardPage() {
           </thead>
           <tbody className="text-gray-600 text-sm font-light divide-y divide-[#B9DAFE]">
             {/* Dynamically rendered rows */}
-            {currentItems.map((user, i) => (
+            {currentItems?.map((user, i) => (
               <tr
                 key={i}
                 // Apply alternating background color
@@ -114,10 +136,10 @@ export default function DashboardPage() {
                 } *:border *:border-[#B9DAFE] hover:bg-gray-100`}
               >
                 <td className="py-3 px-6 text-left whitespace-nowrap">
-                  {user.name}
+                  {user.full_name}
                 </td>
                 <td className="py-3 px-6 text-left">{user.username}</td>
-                <td className="py-3 px-6 text-left">{user.email}</td>
+                {/* <td className="py-3 px-6 text-left">{user.email}</td> */}
                 <td className="py-3 px-6 text-left">{user.age}</td>
                 <td className="py-3 px-6 text-left">{user.gender}</td>
                 <td className="py-3 px-6 text-left">
@@ -137,7 +159,6 @@ export default function DashboardPage() {
           </tbody>
         </table>
 
-        {/* Pagination Controls */}
         <div
           id="pagination-controls"
           className="flex justify-end mt-6 space-x-2"
@@ -148,7 +169,6 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          {/* Previous Button */}
           <button
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
@@ -161,7 +181,6 @@ export default function DashboardPage() {
             <FaChevronLeft />
           </button>
 
-          {/* Next Button */}
           <button
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
@@ -182,7 +201,7 @@ export default function DashboardPage() {
           <h1 className="text-[#1D1B20] font-semibold text-2xl lg:text-4xl mb-6">
             Analytics Overview
           </h1>
-          <UserGrowthChart />
+          <UserGrowthChart totalUsers={totalUsers} />
         </div>
       </div>
     </div>
