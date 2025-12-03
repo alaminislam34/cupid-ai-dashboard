@@ -1,8 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import ForgotPassword from "./components/ForgotPassword";
-import SignInForm from "./components/SignInForm";
+import ForgotPassword from "../components/ForgotPassword";
+import SignInForm from "../components/SignInForm";
 import { useState } from "react";
 
 export default function SignIn() {
@@ -11,7 +11,6 @@ export default function SignIn() {
   return (
     <div className="max-w-[1440px] w-11/12 mx-auto flex items-center justify-center min-h-screen py-12">
       <section className="grid grid-cols-1 md:grid-cols-2 gap-24 items-center">
-        {/* image section */}
         <div className="w-full">
           <div className="flex flex-col items-center gap-6 mx-auto">
             <Image
@@ -30,7 +29,6 @@ export default function SignIn() {
             />
           </div>
         </div>
-        {/* form section */}
         {forgotPass ? (
           <ForgotPassword />
         ) : (

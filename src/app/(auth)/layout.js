@@ -1,5 +1,6 @@
 import { ToastContainer } from "react-toastify";
 import "../globals.css";
+import Providers from "@/provider/query_provider";
 
 export const metadata = {
   title: "Cupid AI Dashboard",
@@ -10,8 +11,14 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`antialiased`}>
-        {children}
-        <ToastContainer position="bottom-center" autoClose={1500} closeButton={false}/>
+        <Providers>
+          {children}
+          <ToastContainer
+            position="bottom-center"
+            autoClose={1500}
+            closeButton={false}
+          />
+        </Providers>
       </body>
     </html>
   );

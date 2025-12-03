@@ -11,6 +11,8 @@ import { IoSettings } from "react-icons/io5";
 import { usePathname, useRouter } from "next/navigation";
 import { FiLogOut } from "react-icons/fi";
 import { toast } from "react-toastify";
+import Cookies from "js-cookie";
+import axios from "axios";
 
 export const links = [
   {
@@ -45,26 +47,39 @@ export default function Sidebar() {
   const router = useRouter();
 
   // log out handler
-  const handleLogout = () => {
+  const handleLogoutRequest = async () => {
+    const accessToken = Cookies.get("accessToken");
+    console.log(accessToken);
+
+    if (!accessToken) {
+      console.warn("Access token not found. Proceeding with local logout.");
+      return;
+    }
+    const config = {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+    };
+
     try {
-      localStorage.removeItem("user");
-      toast.success("Logged out successfully!");
-      router.push("/"); // use top-level router
+      const logout = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/logout/`,
+        {},
+        config
+      );
+
+      Cookies.remove("accessToken");
+      Cookies.remove("refreshToken");
+      toast.success(logout.data.message);
+      setTimeout(() => {
+        router.push("/login");
+      }, 1500);
     } catch (error) {
-      console.error("Logout error:", error);
-      toast.error("Something went wrong while logging out.");
+      console.error("Logout API Error:", error);
     }
   };
 
-  useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (!user || !user.login) {
-      router.push("/"); // redirect to login if not logged in
-    }
-    // Don't redirect if already logged in; sidebar is on dashboard pages
-  }, [router]);
-
-  
   return (
     <div className="w-[300px] h-[96vh] my-auto bg-linear-to-r from-[#FB665B] via-[#CE51A6] to-[#8951D5] p-10 rounded-2xl sticky top-5 flex flex-col justify-between">
       <div>
@@ -106,7 +121,7 @@ export default function Sidebar() {
         </div>
         <br />
         <button
-          onClick={handleLogout}
+          onClick={handleLogoutRequest}
           className="text-lg font-semibold text-secondary2 flex items-center justify-center gap-2 py-3 w-full bg-white rounded-2xl cursor-pointer"
         >
           <FiLogOut /> Log out

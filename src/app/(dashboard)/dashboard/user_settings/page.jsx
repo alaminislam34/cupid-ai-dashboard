@@ -3,11 +3,22 @@
 import { useState } from "react";
 import Bots_profile from "./components/Bots_profile";
 
+// {
+//     "name": "lucky1",
+//     "gender": "female",
+//     "age": "26",
+//     "height": "5.6",
+//     "ethnicity": "caucasian",
+//     "interest": "hiking",
+//     "description": "lucky is a cheerful 25-year-old graphic designer who loves coffee, hiking, and creating digital art. She's looking for someone who appreciates creativity and adventure."
+// }
+ 
+
 export default function user_settings() {
   const [name, setName] = useState("");
   const [age, setAge] = useState(0);
   const [height, setHeight] = useState(0);
-  const [about, setAbout] = useState("");
+  const [description, setDescription] = useState("");
   const [interest, setInterest] = useState("");
 
   return (
@@ -47,7 +58,7 @@ export default function user_settings() {
             type="text"
             rows={5}
             placeholder="Write here...."
-            onChange={(v) => setAbout(v.target.value)}
+            onChange={(v) => setDescription(v.target.value)}
             className="py-2 focus:border-none focus:outline-none"
           />
         </label>
