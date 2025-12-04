@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import React, { useEffect } from "react";
+import React from "react";
 import { BiBarChartSquare } from "react-icons/bi";
 import { GrUserSettings } from "react-icons/gr";
 import { HiUsers } from "react-icons/hi2";
@@ -13,6 +13,7 @@ import { FiLogOut } from "react-icons/fi";
 import { toast } from "react-toastify";
 import Cookies from "js-cookie";
 import axios from "axios";
+import { useAuth } from "@/provider/authProvider";
 
 export const links = [
   {
@@ -45,7 +46,8 @@ export const links = [
 export default function Sidebar() {
   const path = usePathname();
   const router = useRouter();
-
+  const { user, isAuthenticated, isLoading } = useAuth();
+  console.log(user);
   // log out handler
   const handleLogoutRequest = async () => {
     const accessToken = Cookies.get("accessToken");
@@ -109,7 +111,7 @@ export default function Sidebar() {
       <div>
         <div className="flex items-start gap-3">
           <Image
-            src={"/images/welcome.png"}
+            src={user?.profile_picture}
             height={60}
             width={60}
             alt="User image"

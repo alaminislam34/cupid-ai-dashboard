@@ -11,20 +11,50 @@ import { toast } from "react-toastify";
 // and rely on documentation or JSDoc for structure.
 const AuthContext = createContext(undefined);
 
-// Define API Base URL
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
-
 // --- The Main Auth Provider Component ---
 export function AuthProvider({ children }) {
   // Use null as the initial state for the user object
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
 
   const isAuthenticated = !!user;
 
   // Function to fetch user details using the access token
- 
+  const fetchUser = async (token) => {
+    try {
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/profile/`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setUser(response.data);
+    } catch (error) {
+      console.error(
+        "Token verification failed or User details fetch error:",
+        error
+      );
+      Cookies.remove("accessToken");
+      Cookies.remove("refreshToken");
+      setUser(null);
+      toast.error("Session expired or invalid. Please log in again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const token = Cookies.get("accessToken");
+
+    if (token) {
+      fetchUser(token);
+    } else {
+      setIsLoading(false);
+    }
+  }, []);
 
   const contextValue = {
     user,
@@ -34,10 +64,8 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider value={contextValue}>
-      {/* Show a global loading spinner while the initial user details are being fetched. */}
       {isLoading ? (
         <div className="flex justify-center items-center h-screen">
-          {/* Simple loading indicator */}
           <p>Loading session...</p>
         </div>
       ) : (
@@ -47,11 +75,9 @@ export function AuthProvider({ children }) {
   );
 }
 
-// --- Custom Hook to use the Auth Context ---
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    // Standard JS error handling for context being used outside provider
     throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;

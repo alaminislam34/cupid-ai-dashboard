@@ -9,7 +9,7 @@ export default function DashboardLayout({ children }) {
     <html lang="en">
       <body className={`antialiased`}>
         <Providers>
-          {/* <AuthProvider> */}
+          <AuthProvider>
             <section className="flex flex-row m-4 gap-6">
               <div>
                 <Sidebar />
@@ -21,7 +21,7 @@ export default function DashboardLayout({ children }) {
               autoClose={1500}
               closeButton={false}
             />{" "}
-          {/* </AuthProvider> */}
+          </AuthProvider>
         </Providers>
       </body>
     </html>

@@ -66,7 +66,6 @@ export default function UserManagemenrt() {
         Dashboard Overview
       </h1>
 
-      {/* Overview Cards */}
       <div>
         <div className="flex flex-wrap items-center gap-6 w-full">
           {overviews.map(({ title, value, icon }, i) => (
