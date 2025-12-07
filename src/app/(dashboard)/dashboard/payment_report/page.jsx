@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import TimeChart from "../components/Chart/Routine";
+// import TimeChart from "../components/Chart/Routine";
 
 export default function Payment_Report() {
   return (
@@ -9,7 +9,7 @@ export default function Payment_Report() {
         Payment Report
       </h1>
 
-      <TimeChart/>
+      {/* <TimeChart/> */}
     </div>
   );
 }

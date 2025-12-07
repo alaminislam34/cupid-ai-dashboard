@@ -8,6 +8,8 @@ import { toast } from "react-toastify";
 import * as z from "zod";
 import axios from "axios";
 import Cookies from "js-cookie";
+import baseApi from "@/api/base_url";
+import { OTP_REQUEST, OTP_VERIFY } from "@/api/apiEntpoint";
 
 const signInSchema = z.object({
   email: z
@@ -57,9 +59,6 @@ export default function SignInForm({ setForgotPass }) {
   });
   const [formErrors, setFormErrors] = useState({});
 
-  const API_BASE_URL =
-    process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -71,9 +70,7 @@ export default function SignInForm({ setForgotPass }) {
   const requestOtp = async (credentials) => {
     try {
       setIsLoading(true);
-
-      const url = `${API_BASE_URL}/api/login/otp/request/`;
-      const response = await axios.post(url, credentials, {
+      const response = await baseApi.post(OTP_REQUEST, credentials, {
         headers: { "Content-Type": "application/json" },
       });
 
@@ -121,7 +118,7 @@ export default function SignInForm({ setForgotPass }) {
 
     try {
       setIsLoading(true);
-      const url = `${API_BASE_URL}/api/login/otp/verify/`;
+      const url = `${baseApi}${OTP_VERIFY}`;
 
       const payload = {
         email: values.email,
@@ -129,7 +126,7 @@ export default function SignInForm({ setForgotPass }) {
         otp: values.otp,
       };
 
-      const response = await axios.post(url, payload, {
+      const response = await baseApi.post(OTP_VERIFY, payload, {
         headers: { "Content-Type": "application/json" },
       });
 

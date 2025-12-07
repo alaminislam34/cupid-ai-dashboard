@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { BiBarChartSquare } from "react-icons/bi";
 import { GrUserSettings } from "react-icons/gr";
 import { HiUsers } from "react-icons/hi2";
@@ -14,6 +14,8 @@ import { toast } from "react-toastify";
 import Cookies from "js-cookie";
 import axios from "axios";
 import { useAuth } from "@/provider/authProvider";
+import baseApi from "@/api/base_url";
+import { LOGOUT } from "@/api/apiEntpoint";
 
 export const links = [
   {
@@ -46,7 +48,13 @@ export const links = [
 export default function Sidebar() {
   const path = usePathname();
   const router = useRouter();
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user } = useAuth();
+
+  const [profile, setProfile] = useState("/images/bot.jpg");
+
+  useEffect(() => {
+    if (user?.profile_picture) setProfile(user.profile_picture);
+  }, [user]);
   console.log(user);
   // log out handler
   const handleLogoutRequest = async () => {
@@ -57,18 +65,17 @@ export default function Sidebar() {
       console.warn("Access token not found. Proceeding with local logout.");
       return;
     }
-    const config = {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-    };
 
     try {
-      const logout = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/logout/`,
+      const logout = await baseApi.post(
+        LOGOUT,
         {},
-        config
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+        }
       );
 
       Cookies.remove("accessToken");
@@ -111,14 +118,14 @@ export default function Sidebar() {
       <div>
         <div className="flex items-start gap-3">
           <Image
-            src={user?.profile_picture}
+            src={profile}
             height={60}
             width={60}
             alt="User image"
             className="rounded-full w-[60px] h-[60px] bg-cover bg-center border-2 border-white"
           />
           <h3 className="lg:text-xl font-semibold text-white py-2">
-            Leena Alen
+            {user?.full_name}
           </h3>
         </div>
         <br />

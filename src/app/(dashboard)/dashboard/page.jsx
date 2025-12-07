@@ -1,56 +1,18 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import { HiUsers } from "react-icons/hi2";
 import { RiRobot3Line } from "react-icons/ri";
 import { HiOutlineInboxIn } from "react-icons/hi";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa6";
 import UserGrowthChart from "./components/Chart/Chart";
-import axios from "axios";
-import Cookies from "js-cookie";
+import { useAuth } from "@/provider/authProvider";
 
 const ITEMS_PER_PAGE = 10;
 
 export default function DashboardPage() {
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalUsers, setTotalUsers] = useState(0);
-
-  useEffect(() => {
-    const fetchTotalUsers = async () => {
-      const accessToken = Cookies.get("accessToken");
-
-      if (!accessToken) {
-        console.error("Access token not found.");
-        return;
-      }
-
-      const config = {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-      };
-
-      try {
-        const res = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/admin/total-users/`,
-          config
-        );
-
-        if (res.status === 200) {
-          setTotalUsers(res.data);
-          console.log("Total Users Fetched:", res.data);
-        }
-      } catch (error) {
-        console.error(
-          "Failed to fetch total users:",
-          error.response ? error.response.data : error.message
-        );
-      }
-    };
-
-    fetchTotalUsers();
-  }, []);
+  const { totalBots, totalUsers } = useAuth();
 
   const totalPages = Math.ceil(totalUsers.total_users / ITEMS_PER_PAGE);
 
@@ -73,12 +35,12 @@ export default function DashboardPage() {
   const overviews = [
     {
       title: "Total Users",
-      value: totalUsers.total_users || 0,
+      value: totalUsers?.total_users || 0,
       icon: <HiUsers className="text-3xl text-white" />,
     },
     {
       title: "Total Created Bots",
-      value: "524",
+      value: totalBots?.total_bots || 0,
       icon: <RiRobot3Line className="text-3xl text-white" />,
     },
     {

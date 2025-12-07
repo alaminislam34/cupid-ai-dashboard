@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Bots_profile from "./components/Bots_profile";
-import axios from "axios"; // Corrected import name to axios
-import Cookies from "js-cookie"; // Added library for easy cookie handling
+import Cookies from "js-cookie"; 
+import { toast } from "react-toastify";
+import baseApi from "@/api/base_url";
+import { CREATE_BOT } from "@/api/apiEntpoint";
 
 export default function user_settings() {
   // Existing state variables
@@ -13,37 +15,32 @@ export default function user_settings() {
   const [description, setDescription] = useState("");
   const [interest, setInterest] = useState("");
 
-  // New state variables for missing fields and access token
   const [gender, setGender] = useState("");
   const [ethnicity, setEthnicity] = useState("");
-  const [accessToken, setAccessToken] = useState(null); // State to store the accessToken
+  const [accessToken, setAccessToken] = useState(null); 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // --- 🍪 useEffect to get cookies and set accessToken ---
   useEffect(() => {
-    // Get the accessToken cookie
-    const token = Cookies.get("accessToken"); // Assuming your cookie is named 'accessToken'
+    const token = Cookies.get("accessToken");
     if (token) {
       setAccessToken(token);
       console.log("Access Token Retrieved:", token);
     } else {
       console.log("No accessToken cookie found.");
-      // Handle case where token is missing (e.g., redirect to login)
     }
   }, []);
 
-  // --- 🚀 Submission Handler ---
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent default form submission
+    e.preventDefault();
     setLoading(true);
     setError(null);
 
     const profileData = {
       name,
       gender,
-      age: String(age), // Ensure age is a string if the backend expects it, based on your JSON example
-      height: String(height), // Ensure height is a string
+      age: String(age),
+      height: String(height),
       ethnicity,
       interest,
       description,
@@ -51,7 +48,6 @@ export default function user_settings() {
 
     console.log("Data to be sent:", profileData);
 
-    // Check for the access token before sending
     if (!accessToken) {
       setError("Authorization failed: Access Token is missing.");
       setLoading(false);
@@ -59,20 +55,15 @@ export default function user_settings() {
     }
 
     try {
-      const response = await axios.post(
-        "/api/profile/design", // Replace with your actual API endpoint
-        profileData,
-        {
-          headers: {
-            // Send the accessToken in the Authorization header
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await baseApi.post(CREATE_BOT, profileData, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      });
 
       console.log("Profile Design Success:", response.data);
-      alert("Profile designed successfully!");
+      toast.success("Profile designed successfully!");
     } catch (err) {
       console.error("Profile Design Error:", err);
       setError("Failed to design profile. Please try again.");

@@ -7,36 +7,48 @@ import { HiOutlineInboxIn } from "react-icons/hi";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa6";
 import { TiEdit } from "react-icons/ti";
 import { RiDeleteBinLine } from "react-icons/ri";
-
-// --- 1. OVERVIEW DATA (Unchanged) ---
-export const overviews = [
-  {
-    title: "Total Users",
-    value: "1524",
-    icon: <HiUsers className="text-3xl text-white" />,
-  },
-  {
-    title: "New Users",
-    value: "524",
-    icon: <HiUsers className="text-3xl text-white" />,
-  },
-];
-
-// --- 2. DUMMY USER DATA FOR PAGINATION ---
-const ALL_USERS = Array.from({ length: 25 }, (_, i) => ({
-  name: `User ${i + 1}`,
-  username: `user_${i + 1}`,
-  email: `user${i + 1}@example.com`,
-  age: 20 + (i % 10),
-  gender: i % 2 === 0 ? "Male" : "Female",
-  subscription: i % 3 === 0 ? "Basic" : "Premium",
-}));
-
-const ITEMS_PER_PAGE = 10; // Set the number of rows per page
+import { useAuth } from "@/provider/authProvider";
 
 // --- 3. REACT COMPONENT WITH PAGINATION LOGIC ---
 export default function UserManagemenrt() {
   const [currentPage, setCurrentPage] = useState(1);
+  const { totalUsers } = useAuth();
+  // --- 1. OVERVIEW DATA (Unchanged) ---
+
+  const today = new Date();
+
+  const newUsers = totalUsers?.users?.filter((user) => {
+    const joinedDate = new Date(user.date_joined);
+    return (
+      joinedDate.getDate() === today.getDate() &&
+      joinedDate.getMonth() === today.getMonth() &&
+      joinedDate.getFullYear() === today.getFullYear()
+    );
+  }).length;
+  const overviews = [
+    {
+      title: "Total Users",
+      value: totalUsers?.total_users || 0,
+      icon: <HiUsers className="text-3xl text-white" />,
+    },
+    {
+      title: "New Users",
+      value: newUsers || 0,
+      icon: <HiUsers className="text-3xl text-white" />,
+    },
+  ];
+
+  // --- 2. DUMMY USER DATA FOR PAGINATION ---
+  const ALL_USERS = Array.from({ length: 25 }, (_, i) => ({
+    name: `User ${i + 1}`,
+    username: `user_${i + 1}`,
+    email: `user${i + 1}@example.com`,
+    age: 20 + (i % 10),
+    gender: i % 2 === 0 ? "Male" : "Female",
+    subscription: i % 3 === 0 ? "Basic" : "Premium",
+  }));
+
+  const ITEMS_PER_PAGE = 10; // Set the number of rows per page
 
   // Calculate total pages
   const totalPages = Math.ceil(ALL_USERS.length / ITEMS_PER_PAGE);

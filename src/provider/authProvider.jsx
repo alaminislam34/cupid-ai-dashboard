@@ -1,35 +1,74 @@
 "use client";
 
-import React, { createContext, useState, useEffect, useContext } from "react";
-import axios from "axios";
+import React, {
+  createContext,
+  useState,
+  useEffect,
+  useContext,
+  useCallback,
+  useMemo,
+} from "react";
 import Cookies from "js-cookie";
-import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 
-// --- Initial State and Context Creation ---
-// Note: In JSX/JS, we often define a simple initial value,
-// and rely on documentation or JSDoc for structure.
-const AuthContext = createContext(undefined);
+import baseApi from "@/api/base_url";
+import {
+  ADMIN_TOTAL_BOTS,
+  ADMIN_TOTAL_USERS,
+  PROFILE_DETAILS,
+} from "@/api/apiEntpoint";
+
+const initialContextState = {
+  user: null,
+  isAuthenticated: false,
+  isLoading: true,
+  totalUsers: 0,
+  totalBots: 0,
+  refreshAdminMetrics: () => {},
+};
+
+// Create the Auth Context
+const AuthContext = createContext(initialContextState);
+const fetchMetrics = async (endpoint) => {
+  const accessToken = Cookies.get("accessToken");
+
+  if (!accessToken) {
+    return 0;
+  }
+
+  try {
+    const res = await baseApi.get(endpoint);
+
+    return res.data || 0;
+  } catch (error) {
+    console.error(
+      `Failed to fetch ${endpoint}:`,
+      error.response?.data || error.message
+    );
+    return 0;
+  }
+};
 
 // --- The Main Auth Provider Component ---
 export function AuthProvider({ children }) {
-  // Use null as the initial state for the user object
+  // --- Core Auth State ---
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // --- Admin Metrics State ---
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [totalBots, setTotalBots] = useState(0);
+  const [metricsRefreshKey, setMetricsRefreshKey] = useState(0);
+
   const isAuthenticated = !!user;
 
-  // Function to fetch user details using the access token
-  const fetchUser = async (token) => {
+  // Function to fetch user details using the access token (Memoized with useCallback)
+  const fetchUser = useCallback(async (token) => {
+    setIsLoading(true);
     try {
-      const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/profile/`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      // 💡 CHANGE 2: Use baseApi.get() with the relative endpoint /api/profile/
+      // The Authorization header is now automatically added by baseApi's request interceptor.
+      const response = await baseApi.get(PROFILE_DETAILS);
 
       setUser(response.data);
     } catch (error) {
@@ -37,6 +76,7 @@ export function AuthProvider({ children }) {
         "Token verification failed or User details fetch error:",
         error
       );
+      // Clean up manually if the interceptor failed to handle the refresh
       Cookies.remove("accessToken");
       Cookies.remove("refreshToken");
       setUser(null);
@@ -44,23 +84,59 @@ export function AuthProvider({ children }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
+  // 1. Primary Effect for User Authentication Check on Mount
   useEffect(() => {
     const token = Cookies.get("accessToken");
 
     if (token) {
+      // We still need the token check here to trigger fetchUser initially.
       fetchUser(token);
     } else {
       setIsLoading(false);
     }
+  }, [fetchUser]);
+
+  const refreshAdminMetrics = useCallback(() => {
+    setMetricsRefreshKey((prev) => prev + 1);
   }, []);
 
-  const contextValue = {
-    user,
-    isAuthenticated,
-    isLoading,
-  };
+  // 2. Secondary Effect for Admin Metrics Fetching (Only runs when required)
+  useEffect(() => {
+    const loadMetrics = async () => {
+      if (!isAuthenticated) return;
+
+      // 💡 CHANGE 3: The fetchMetrics helper now uses baseApi internally.
+      const users = await fetchMetrics(ADMIN_TOTAL_USERS);
+      const bots = await fetchMetrics(ADMIN_TOTAL_BOTS);
+
+      setTotalUsers(users);
+      setTotalBots(bots);
+    };
+
+    loadMetrics();
+  }, [isAuthenticated, metricsRefreshKey]);
+
+  // Memoize the context value
+  const contextValue = useMemo(
+    () => ({
+      user,
+      isAuthenticated,
+      isLoading,
+      totalBots,
+      totalUsers,
+      refreshAdminMetrics,
+    }),
+    [
+      user,
+      isAuthenticated,
+      isLoading,
+      totalBots,
+      totalUsers,
+      refreshAdminMetrics,
+    ]
+  );
 
   return (
     <AuthContext.Provider value={contextValue}>
@@ -75,6 +151,7 @@ export function AuthProvider({ children }) {
   );
 }
 
+// Custom hook to use the Auth context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
