@@ -5,18 +5,17 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FaApple, FaRegEye, FaRegEyeSlash } from "react-icons/fa6";
 import { toast } from "react-toastify";
-import * as z from "zod";
-import axios from "axios";
 import Cookies from "js-cookie";
+import z from "zod";
 import baseApi from "@/api/base_url";
 import { OTP_REQUEST, OTP_VERIFY } from "@/api/apiEntpoint";
 
+// --- UPDATED VALIDATION SCHEMA (No Username) ---
 const signInSchema = z.object({
   email: z
     .string()
     .min(1, { message: "Email is required" })
     .email("Invalid email address"),
-  username: z.string().min(1, { message: "Username is required" }),
   password: z
     .string()
     .min(6, { message: "Password must be at least 6 characters" }),
@@ -25,9 +24,12 @@ const signInSchema = z.object({
 
 const validateForm = (data) => {
   try {
+    // Schema changes based on step:
+    // Step 1: Requires email and password (omit OTP)
+    // Step 2: Requires OTP (omit email and password - though we keep them in state)
     const schema = data.isOtpSent
-      ? signInSchema.pick({ otp: true })
-      : signInSchema.omit({ otp: true });
+      ? signInSchema.pick({ otp: true }) // Only validate OTP in step 2
+      : signInSchema.omit({ otp: true }); // Only validate Email/Password in step 1
 
     schema.parse(data);
     return { success: true, errors: {} };
@@ -51,10 +53,11 @@ export default function SignInForm({ setForgotPass }) {
   const [showPass, setShowPass] = useState(false);
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // --- UPDATED FORM DATA STATE (No Username) ---
   const [formData, setFormData] = useState({
     email: "alaminislam4122.bd@gmail.com",
     password: "Alamin.bd34",
-    username: "alamin1",
     otp: "",
   });
   const [formErrors, setFormErrors] = useState({});
@@ -67,12 +70,13 @@ export default function SignInForm({ setForgotPass }) {
     }
   };
 
+  // --- API CALL 1: REQUEST OTP (Login attempt + OTP send) ---
   const requestOtp = async (credentials) => {
     try {
       setIsLoading(true);
-      const response = await baseApi.post(OTP_REQUEST, credentials, {
-        headers: { "Content-Type": "application/json" },
-      });
+
+      // 💡 FIX 1: Removed manual headers config, relying on baseApi defaults/interceptors.
+      const response = await baseApi.post(OTP_REQUEST, credentials);
 
       setFormData((prev) => ({ ...prev, otp: "" }));
       setFormErrors({});
@@ -107,8 +111,9 @@ export default function SignInForm({ setForgotPass }) {
     }
   };
 
+  // --- API CALL 2: VERIFY OTP AND COMPLETE LOGIN ---
   const verifyOtpAndLogin = async (values) => {
-    if (!values.email || !values.username || !values.otp) {
+    if (!values.email || !values.otp) {
       toast.error(
         "Verification data missing. Please try requesting OTP again."
       );
@@ -118,28 +123,29 @@ export default function SignInForm({ setForgotPass }) {
 
     try {
       setIsLoading(true);
-      const url = `${baseApi}${OTP_VERIFY}`;
+      // ❌ Removed incorrect line: const url = `${baseApi}${OTP_VERIFY}`;
 
       const payload = {
         email: values.email,
-        username: values.username,
         otp: values.otp,
       };
 
-      const response = await baseApi.post(OTP_VERIFY, payload, {
-        headers: { "Content-Type": "application/json" },
-      });
+      // 💡 FIX 2: Used baseApi.post() correctly and removed manual headers config.
+      const response = await baseApi.post(OTP_VERIFY, payload);
 
       const { tokens } = response.data;
 
+      // Set cookies
       if (tokens?.access) {
         Cookies.set("accessToken", tokens.access, {
-          expires: 1 / 24,
+          expires: 1 / 24, // 1 hour (24 hours in a day)
+          secure: process.env.NODE_ENV === "production",
         });
       }
       if (tokens?.refresh) {
         Cookies.set("refreshToken", tokens.refresh, {
           expires: 30,
+          secure: process.env.NODE_ENV === "production",
         });
       }
 
@@ -170,6 +176,7 @@ export default function SignInForm({ setForgotPass }) {
     }
   };
 
+  // --- SUBMIT HANDLER ---
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -189,32 +196,37 @@ export default function SignInForm({ setForgotPass }) {
 
     setFormErrors({});
 
-    const { username, email, password, otp } = formData;
-    const credentialsForStep1 = { username, email, password };
+    // 💡 FIX 3: Removed username from destructuring and credentials payload.
+    const { email, password, otp } = formData;
+    const credentialsForStep1 = { email, password }; // Only email and password sent for OTP request
 
     if (isOtpSent) {
-      verifyOtpAndLogin({ email, username, otp });
+      verifyOtpAndLogin({ email, otp });
     } else {
       requestOtp(credentialsForStep1);
     }
   };
 
+  // --- JSX RENDER ---
   return (
-    <div>
-      <div className="w-full">
-        <div className="max-w-xl w-full mx-auto p-4 md:p-6 lg:p-0">
-          <h1 className="text-2xl lg:text-[40px] font-bold mb-10 lg:mb-20 text-center">
+    <div className="w-full">
+      <div className="max-w-2xl w-full mx-auto ">
+        <div className=" p-4 md:p-6 lg:p-0">
+          <h1 className="text-3xl lg:text-[40px] font-bold mb-10 lg:mb-20 text-center">
             Welcome
-            <span className="text-transparent bg-clip-text bg-linear-to-t from-[#FB665B] to-[#CE51A6] ">
+            <span className="text-transparent bg-clip-text bg-linear-to-t from-[#FB665B] to-[#CE51A6] pl-2 ">
               back
             </span>
           </h1>
-          <p className="text-sm text-gray-500 my-4 text-center">
-            Please check your email!
-          </p>
+          {isOtpSent && (
+            <p className="text-sm text-green-600 my-4 text-center">
+              Please check your email!
+            </p>
+          )}
 
           {!isOtpSent && (
             <>
+              {/* External Auth Buttons (Gmail & Apple) */}
               <div className="space-y-4">
                 <button className="py-3 lg:py-5 w-full rounded-[20px] border border-secondary flex items-center justify-center gap-4 cursor-pointer text-base">
                   <Image
@@ -245,26 +257,7 @@ export default function SignInForm({ setForgotPass }) {
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isOtpSent && (
               <>
-                <label className="flex flex-col gap-1">
-                  <span className="text-base md:text-lg font-semibold">
-                    Username
-                  </span>
-                  <input
-                    type="text"
-                    name="username"
-                    disabled={isLoading}
-                    value={formData.username}
-                    onChange={handleChange}
-                    className={`py-3 lg:py-4 border border-secondary rounded-2xl px-4 shadow-[0px_4px_12px_0px_#0000000D] w-full text-base`}
-                    placeholder="Enter your username"
-                  />
-                  {formErrors.username && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {formErrors.username}
-                    </p>
-                  )}
-                </label>
-
+                {/* Email Input */}
                 <label className="flex flex-col gap-1">
                   <span className="text-base md:text-lg font-semibold">
                     Email
@@ -285,6 +278,7 @@ export default function SignInForm({ setForgotPass }) {
                   )}
                 </label>
 
+                {/* Password Input */}
                 <label className="flex flex-col gap-1">
                   <span className="text-base md:text-lg font-semibold">
                     Password
@@ -320,9 +314,10 @@ export default function SignInForm({ setForgotPass }) {
               </>
             )}
 
+            {/* OTP Input (Appears after Step 1 success) */}
             {isOtpSent && (
               <label className="flex flex-col gap-1 pt-2">
-                <span className="text-base md:text-lg font-semibold text-[#8951D5]">
+                <span className="text-base md:text-lg font-semibold text-[#1d1d1d]">
                   Verification Code
                 </span>
                 <input
@@ -353,6 +348,7 @@ export default function SignInForm({ setForgotPass }) {
               </button>
             </div>
 
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={isLoading}

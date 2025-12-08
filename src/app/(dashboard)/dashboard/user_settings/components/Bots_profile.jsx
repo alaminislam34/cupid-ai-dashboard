@@ -3,6 +3,7 @@
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import Cookies from "js-cookie";
+// Use the configured axios instance
 import baseApi from "@/api/base_url";
 import { ALL_BOTS_DATA } from "@/api/apiEntpoint";
 
@@ -10,58 +11,61 @@ export default function Bots_profile() {
   const [bots, setBots] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [accessToken, setAccessToken] = useState(null);
 
-  useEffect(() => {
-    // 1. Get the accessToken from cookies
-    const token = Cookies.get("accessToken");
-    if (token) {
-      setAccessToken(token);
-    } else {
+  // Define the function to fetch bot data
+  const fetchBots = async () => {
+    // Check for token existence before fetching (quick initial check)
+    if (!Cookies.get("accessToken")) {
       setError("Authorization failed: Access Token is missing.");
       setLoading(false);
       return;
     }
 
-    // 2. Define the function to fetch bot data
-    const fetchBots = async (accessToken) => {
-      try {
-        const response = await baseApi.get(ALL_BOTS_DATA, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-        });
+    setLoading(true);
 
-        if (response.data && Array.isArray(response.data.bots)) {
-          const botProfiles = response.data.bots.map((item) => item.bot);
-          setBots(botProfiles);
-          setError(null);
-        } else {
-          setBots([]);
-          setError(
-            "API response structure is invalid or 'bots' array is missing."
-          );
-        }
-      } catch (err) {
-        console.error("Error fetching bot data:", err);
+    try {
+      // 💡 Key Change: Use baseApi.get() with only the relative endpoint.
+      // The baseApi interceptor automatically handles:
+      // 1. Adding the Authorization header (Bearer token)
+      // 2. Refreshing the token if it's expired (401 error)
+      const response = await baseApi.get(ALL_BOTS_DATA);
+
+      // Check the response structure based on the sample data provided: { bots: [...] }
+      if (response.data && Array.isArray(response.data.bots)) {
+        // Map to get the 'bot' object from each item: item => item.bot
+        const botProfiles = response.data.bots.map((item) => item.bot);
+        setBots(botProfiles);
+        setError(null);
+      } else {
+        setBots([]);
+        // Handle cases where the API returns data but not in the expected format
         setError(
-          "Failed to load bots. Please check the API endpoint and network connection."
+          "API response structure is invalid or 'bots' array is missing."
         );
-      } finally {
-        setLoading(false);
       }
-    };
-
-    if (accessToken) {
-      fetchBots(accessToken);
+    } catch (err) {
+      console.error("Error fetching bot data:", err);
+      // The error here is usually after the baseApi interceptor failed to refresh/retry.
+      setError(
+        err.response?.data?.detail ||
+          "Failed to load bots. Please log in again."
+      );
+    } finally {
+      setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    fetchBots();
+    // Dependency array is empty, runs only on mount.
   }, []);
+
+  // --- Render States ---
 
   if (loading) {
     return (
       <div className="text-center py-10 text-xl text-gray-600">
-        Loading Bots Profiles...
+        Loading Bots Profiles... 🤖
       </div>
     );
   }
@@ -82,6 +86,7 @@ export default function Bots_profile() {
     );
   }
 
+  // --- Main Content Rendering ---
   return (
     <div>
       <div className="flex items-center justify-between">
@@ -93,9 +98,11 @@ export default function Bots_profile() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 items-center gap-6">
         {bots.map((bot, index) => {
+          // Process interests string into an array, ensuring cleanliness
           const interests = (bot.interest || "")
             .split(",")
-            .filter((i) => i.trim() !== "");
+            .map((i) => i.trim())
+            .filter((i) => i !== "");
 
           return (
             <div
@@ -108,6 +115,8 @@ export default function Bots_profile() {
                 width={200}
                 alt={`${bot.name}'s Profile picture`}
                 className="mx-auto rounded-2xl object-cover"
+                // Added 'unoptimized' and 'priority' for potentially external/dynamic images
+                priority
               />
 
               <h1 className="py-2 text-xl lg:text-3xl font-semibold text-center">
@@ -117,8 +126,13 @@ export default function Bots_profile() {
               <div className="space-y-4">
                 <h4 className="font-bold">About</h4>
                 <p>
+                  {/* Prioritize description, fallback to constructing it from fields */}
                   {bot.description ||
-                    `A ${bot.gender} bot who is ${bot.age} years old and loves ${bot.interest}.`}
+                    `A ${bot.gender} bot who is ${
+                      bot.age
+                    } years old and enjoys ${
+                      bot.interest || "various activities"
+                    }.`}
                 </p>
 
                 <h4 className="font-bold">Interest</h4>
@@ -129,7 +143,7 @@ export default function Bots_profile() {
                         key={i}
                         className="rounded-4xl border border-secondary text-secondary2 px-2"
                       >
-                        {interest.trim()}
+                        {interest}
                       </span>
                     ))
                   ) : (
@@ -140,8 +154,9 @@ export default function Bots_profile() {
                 </div>
 
                 <div className="text-sm text-gray-600">
-                  **Gender:** {bot.gender} | **Age:** {bot.age} | **Ethnicity:**{" "}
-                  {bot.ethnicity}
+                  <span className="font-bold">Gender:</span> {bot.gender} |{" "}
+                  <span className="font-bold">Age:</span> {bot.age} |{" "}
+                  <span className="font-bold">Ethnicity:</span> {bot.ethnicity}
                 </div>
               </div>
             </div>

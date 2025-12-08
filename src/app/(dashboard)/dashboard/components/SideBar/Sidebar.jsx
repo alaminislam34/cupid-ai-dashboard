@@ -12,7 +12,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { FiLogOut } from "react-icons/fi";
 import { toast } from "react-toastify";
 import Cookies from "js-cookie";
-import axios from "axios";
 import { useAuth } from "@/provider/authProvider";
 import baseApi from "@/api/base_url";
 import { LOGOUT } from "@/api/apiEntpoint";
@@ -55,11 +54,9 @@ export default function Sidebar() {
   useEffect(() => {
     if (user?.profile_picture) setProfile(user.profile_picture);
   }, [user]);
-  console.log(user);
   // log out handler
   const handleLogoutRequest = async () => {
     const accessToken = Cookies.get("accessToken");
-    console.log(accessToken);
 
     if (!accessToken) {
       console.warn("Access token not found. Proceeding with local logout.");
