@@ -1,18 +1,39 @@
-// middleware.js or middleware.ts
-import { NextResponse } from 'next/server';
- 
+// middleware.ts
+import { NextRequest, NextResponse } from "next/server";
+
 export function middleware(request) {
-  // Example: Redirect unauthenticated users to a login page
-  const isAuthenticated = request.cookies.has('accessToken'); // Replace with your actual auth check
-  if (!isAuthenticated && request.nextUrl.pathname.startsWith('/dashboard')) {
-    return NextResponse.redirect(new URL('/login', request.url));
+  const { pathname } = request.nextUrl;
+
+  // Cookie check
+  const accessToken = request.cookies.get("accessToken")?.value;
+
+  // Public routes (no auth needed)
+  const publicRoutes = ["/login", "/register"];
+
+  // Allow public routes
+  if (publicRoutes.includes(pathname)) {
+    return NextResponse.next();
   }
- 
-  // Allow the request to proceed if no redirection is needed
+
+  // If user NOT logged in → redirect to /login
+  if (!accessToken) {
+    const loginUrl = new URL("/login", request.url);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  // User is authenticated → allow access
   return NextResponse.next();
 }
- 
-// Optional: Define a matcher to specify paths where middleware should run
+
 export const config = {
-  matcher: ['/dashboard/:path*', '/api/:path*'],
+  matcher: [
+    /*
+     * Protect all routes except:
+     * - /login
+     * - /register
+     * - static files
+     * - next internal paths
+     */
+    "/((?!_next/static|_next/image|favicon.ico|login|register).*)",
+  ],
 };

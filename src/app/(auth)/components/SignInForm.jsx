@@ -123,14 +123,10 @@ export default function SignInForm({ setForgotPass }) {
 
     try {
       setIsLoading(true);
-      // ❌ Removed incorrect line: const url = `${baseApi}${OTP_VERIFY}`;
-
       const payload = {
         email: values.email,
         otp: values.otp,
       };
-
-      // 💡 FIX 2: Used baseApi.post() correctly and removed manual headers config.
       const response = await baseApi.post(OTP_VERIFY, payload);
 
       const { tokens } = response.data;
@@ -138,7 +134,7 @@ export default function SignInForm({ setForgotPass }) {
       // Set cookies
       if (tokens?.access) {
         Cookies.set("accessToken", tokens.access, {
-          expires: 1 / 24, // 1 hour (24 hours in a day)
+          expires: 1 / 24,
           secure: process.env.NODE_ENV === "production",
         });
       }
@@ -151,7 +147,7 @@ export default function SignInForm({ setForgotPass }) {
 
       toast.success("Login successful!");
       setTimeout(() => {
-        router.push("/dashboard");
+        router.push("/");
       }, 1500);
     } catch (error) {
       let errorMessage =

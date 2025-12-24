@@ -1,7 +1,6 @@
 "use client";
 
 import { PROFILE_UPDATE } from "@/api/apiEntpoint";
-import axios from "axios";
 import Cookies from "js-cookie";
 import Image from "next/image";
 import React, { useState } from "react";
