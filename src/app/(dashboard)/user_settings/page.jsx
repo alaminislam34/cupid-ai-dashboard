@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Bots_profile from "./components/Bots_profile";
-import Cookies from "js-cookie"; 
+import Cookies from "js-cookie";
 import { toast } from "react-toastify";
 import baseApi from "@/api/base_url";
 import { CREATE_BOT } from "@/api/apiEntpoint";
 
-export default function user_settings() {
+export default function UserSettings() {
   // Existing state variables
   const [name, setName] = useState("");
   const [age, setAge] = useState(0);
@@ -17,7 +17,7 @@ export default function user_settings() {
 
   const [gender, setGender] = useState("");
   const [ethnicity, setEthnicity] = useState("");
-  const [accessToken, setAccessToken] = useState(null); 
+  const [accessToken, setAccessToken] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -25,7 +25,6 @@ export default function user_settings() {
     const token = Cookies.get("accessToken");
     if (token) {
       setAccessToken(token);
-      console.log("Access Token Retrieved:", token);
     } else {
       console.log("No accessToken cookie found.");
     }
@@ -39,8 +38,8 @@ export default function user_settings() {
     const profileData = {
       name,
       gender,
-      age: String(age),
-      height: String(height),
+      age,
+      height,
       ethnicity,
       interest,
       description,
