@@ -4,7 +4,7 @@
 export const PROFILE_DETAILS = "/api/profile/";
 export const PROFILE_UPDATE = "/api/profile/update/";
 export const TOKEN_REFRESH = "/api/token/refresh/";
-export const CREATE_BOT = "/api/profile/design/";
+export const CREATE_BOT = "/api/bots/";
 export const LOGOUT = "/api/logout/";
 
 // Password Reset
