@@ -107,14 +107,14 @@ export default function Bots_profile() {
           return (
             <div
               key={bot.id || index}
-              className="border p-4 rounded-2xl border-secondary shadow-[0px_10px_35px_0px_#00000008]"
+              className="border p-4 h-full rounded-2xl border-secondary/10 shadow-[0px_10px_35px_0px_#00000008]"
             >
               <Image
                 src={bot.profile_picture || "/images/bot.jpg"}
                 height={221}
                 width={200}
                 alt={`${bot.name}'s Profile picture`}
-                className="mx-auto rounded-2xl object-cover"
+                className="mx-auto aspect-square rounded-2xl object-cover"
                 // Added 'unoptimized' and 'priority' for potentially external/dynamic images
                 priority
               />

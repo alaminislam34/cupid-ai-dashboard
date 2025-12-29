@@ -5,20 +5,21 @@ export function middleware(request) {
   const { pathname } = request.nextUrl;
   const accessToken = request.cookies.get("accessToken")?.value;
 
-  // Public routes & assets
-  const publicPaths = ["/login", "/register", "/favicon.ico"];
-  const publicAssets = ["/_next/", "/images/", "/icons/"];
+  const authPages = ["/login", "/register"];
+  const publicAssets = ["/_next/", "/images/", "/icons/", "/favicon.ico"];
 
-  // Allow public routes
-  if (
-    publicPaths.some((path) => pathname.startsWith(path)) ||
-    publicAssets.some((path) => pathname.startsWith(path))
-  ) {
+  // Allow static assets
+  if (publicAssets.some((path) => pathname.startsWith(path))) {
     return NextResponse.next();
   }
 
-  // Redirect if not authenticated
-  if (!accessToken) {
+  // If logged in & trying to access auth pages → redirect to dashboard
+  if (accessToken && authPages.includes(pathname)) {
+    return NextResponse.redirect(new URL("/", request.url));
+  }
+
+  // If NOT logged in & trying to access protected routes
+  if (!accessToken && !authPages.includes(pathname)) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
@@ -26,5 +27,5 @@ export function middleware(request) {
 }
 
 export const config = {
-  matcher: ["/:path*"],
+  matcher: ["/((?!api).*)"],
 };
