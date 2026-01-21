@@ -37,9 +37,8 @@ const validateForm = (data) => {
   }
 };
 
-export default function SignInForm() {
+export default function SignInForm({ setForgotPass }) {
   const router = useRouter();
-
   const [showPass, setShowPass] = useState(false);
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -69,11 +68,12 @@ export default function SignInForm() {
       setIsOtpSent(true);
       toast.success(
         res.data?.message ||
-          "OTP sent to your email. Please check inbox or spam."
+          "OTP sent to your email. Please check inbox or spam.",
       );
     } catch (error) {
       toast.error(
-        error.response?.data?.message || "Failed to send OTP. Please try again."
+        error.response?.data?.message ||
+          "Failed to send OTP. Please try again.",
       );
     } finally {
       setIsLoading(false);
@@ -104,7 +104,7 @@ export default function SignInForm() {
     } catch (error) {
       toast.error(
         error.response?.data?.message ||
-          "OTP verification failed. Please try again."
+          "OTP verification failed. Please try again.",
       );
     } finally {
       setIsLoading(false);
@@ -206,15 +206,24 @@ export default function SignInForm() {
                 </button>
               </div>
 
-              {/* Remember Me */}
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                />
-                Remember me
-              </label>
+              {/* Remember Me and Forgot Password */}
+              <div className="flex items-center justify-between">
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                  />
+                  Remember me
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setForgotPass(true)}
+                  className="text-sm text-purple-600 hover:text-purple-700 font-medium transition-colors"
+                >
+                  Forgot Password?
+                </button>
+              </div>
             </>
           )}
 
@@ -237,8 +246,8 @@ export default function SignInForm() {
             {isLoading
               ? "Processing..."
               : isOtpSent
-              ? "Verify & Login"
-              : "Request OTP"}
+                ? "Verify & Login"
+                : "Request OTP"}
           </button>
         </form>
       </div>
