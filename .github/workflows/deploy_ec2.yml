@@ -1,59 +1,16 @@
-name: Deploy Next.js Dashboard to EC2
-
-on:
-  push:
-    branches:
-      - main
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-
-      - name: Install deps & build
-        run: |
-          npm ci
-          npm run build
-
-      - name: Ensure remote directory exists & permissions
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          port: ${{ secrets.EC2_SSH_PORT }}
-          script: |
-            mkdir -p /home/${{ secrets.EC2_USER }}/dashboard
-            sudo chown -R ${{ secrets.EC2_USER }}: /home/${{ secrets.EC2_USER }}/dashboard || true
-            chmod -R u+rwX /home/${{ secrets.EC2_USER }}/dashboard || true
-
-      - name: Copy project to EC2
-        uses: appleboy/scp-action@v0.1.4
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          port: ${{ secrets.EC2_SSH_PORT }}
-          source: "."
-          target: "/home/${{ secrets.EC2_USER }}/dashboard"
-
-      - name: Restart Next.js app
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          port: ${{ secrets.EC2_SSH_PORT }}
-          script: |
-            cd /home/ubuntu/dashboard
-            pm2 delete next-dashboard || true
-            pm2 start ecosystem.config.js
-            pm2 save
+- name: Restart Next.js app
+  uses: appleboy/ssh-action@v1.0.3
+  with:
+    host: ${{ secrets.EC2_HOST }}
+    username: ${{ secrets.EC2_USER }}
+    key: ${{ secrets.EC2_SSH_KEY }}
+    port: ${{ secrets.EC2_SSH_PORT }}
+    script: |
+      cd /home/${{ secrets.EC2_USER }}/dashboard
+      # Install dependencies on EC2
+      npm ci
+      # Build on EC2 (better than building locally)
+      npm run build
+      # Restart PM2 app correctly
+      pm2 restart cupid-ai-dashboard || pm2 start npm --name "cupid-ai-dashboard" -- run start
+      pm2 save
