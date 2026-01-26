@@ -150,7 +150,7 @@ export default function SignInForm({ setForgotPass }) {
         {!isOtpSent && (
           <>
             <div className="space-y-4">
-              <button className="py-3 lg:py-5 w-full rounded-[20px] border border-secondary flex items-center justify-center gap-4">
+              <button className="py-3 lg:py-5 w-full rounded-[20px] border border-gray-200 flex items-center justify-center gap-4">
                 <Image
                   src="/icons/gmail.png"
                   height={24}
@@ -160,7 +160,7 @@ export default function SignInForm({ setForgotPass }) {
                 Continue with Email
               </button>
 
-              <button className="py-3 lg:py-5 w-full rounded-[20px] border border-secondary flex items-center justify-center gap-2">
+              <button className="py-3 lg:py-5 w-full rounded-[20px] border border-gray-200 flex items-center justify-center gap-2">
                 <span className="p-1 rounded-full bg-black">
                   <FaApple className="text-white text-2xl" />
                 </span>
@@ -185,7 +185,7 @@ export default function SignInForm({ setForgotPass }) {
                 placeholder="Email"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full py-3 px-4 border rounded-2xl"
+                className="w-full py-3 px-4 border border-gray-200 rounded-2xl"
               />
 
               <div className="relative">
@@ -195,7 +195,7 @@ export default function SignInForm({ setForgotPass }) {
                   placeholder="Password"
                   value={formData.password}
                   onChange={handleChange}
-                  className="w-full py-3 px-4 border rounded-2xl pr-12"
+                  className="w-full py-3 px-4 border border-gray-200 rounded-2xl pr-12"
                 />
                 <button
                   type="button"
