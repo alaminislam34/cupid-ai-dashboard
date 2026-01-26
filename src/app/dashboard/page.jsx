@@ -13,13 +13,18 @@ export default function DashboardPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const { totalBots, totalUsers } = useAuth();
 
-  const totalPages = Math.ceil((totalUsers?.total_users || 0) / ITEMS_PER_PAGE);
+  // Normalize users list coming from the auth provider
+  const usersArray = Array.isArray(totalUsers)
+    ? totalUsers
+    : totalUsers?.users || [];
+
+  const totalPages = Math.ceil((usersArray.length || 0) / ITEMS_PER_PAGE) || 1;
 
   const currentItems = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
     const end = start + ITEMS_PER_PAGE;
-    return totalUsers?.users?.slice(start, end) || [];
-  }, [currentPage, totalUsers]);
+    return usersArray.slice(start, end);
+  }, [currentPage, usersArray]);
 
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) setCurrentPage(page);
@@ -89,33 +94,49 @@ export default function DashboardPage() {
             <tbody className="divide-y divide-[#B9DAFE]">
               {currentItems.map((user, i) => (
                 <tr
-                  key={i}
-                  className={`${
-                    i % 2 === 1 ? "bg-gray-50" : "bg-white"
-                  } hover:bg-blue-50/50 transition-colors`}
+                  key={user.id ?? i}
+                  className={`${i % 2 === 1 ? "bg-gray-50" : "bg-white"} hover:bg-blue-50/50 transition-colors`}
                 >
+                  {/* Name */}
                   <td className="py-4 px-6 font-medium text-gray-900 whitespace-nowrap border-r border-[#B9DAFE]">
-                    {user.full_name}
+                    {user.full_name || user.name || "-"}
                   </td>
+
+                  {/* Username (fallback to local-part of email) */}
                   <td className="py-4 px-6 border-r border-[#B9DAFE]">
-                    {user.username}
+                    {user.username ||
+                      (user.email ? user.email.split("@")[0] : "-")}
                   </td>
+
+                  {/* Age */}
                   <td className="py-4 px-6 border-r border-[#B9DAFE]">
-                    {user.age}
+                    {user.age ?? "-"}
                   </td>
+
+                  {/* Gender */}
                   <td className="py-4 px-6 border-r border-[#B9DAFE]">
-                    {user.gender}
+                    {user.gender || "-"}
                   </td>
+
+                  {/* Available Info: list which fields are present in the data */}
                   <td className="py-4 px-6">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        user.subscription === "Premium"
-                          ? "bg-blue-100 text-blue-700"
-                          : "bg-gray-100 text-gray-600"
-                      }`}
-                    >
-                      {user.subscription}
-                    </span>
+                    {(() => {
+                      const available = [];
+                      if (user.full_name || user.name) available.push("Name");
+                      if (user.username || user.email)
+                        available.push("Username/Email");
+                      if (user.age !== null && user.age !== undefined)
+                        available.push("Age");
+                      if (user.gender) available.push("Gender");
+                      if (user.date_joined) available.push("Joined");
+                      return available.length ? (
+                        <span className="text-sm text-gray-700">
+                          {available.join(", ")}
+                        </span>
+                      ) : (
+                        <span className="text-sm text-gray-400">No info</span>
+                      );
+                    })()}
                   </td>
                 </tr>
               ))}
@@ -152,8 +173,8 @@ export default function DashboardPage() {
         <h1 className="text-2xl lg:text-3xl font-bold text-[#1D1B20] mb-6">
           Analytics Overview
         </h1>
-        <div className="bg-white p-4 lg:p-6 rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-          <UserGrowthChart totalUsers={totalUsers} />
+        <div>
+          <UserGrowthChart totalUsers={totalUsers} totalBots={totalBots} />
         </div>
       </div>
     </div>

@@ -18,11 +18,23 @@ import { LOGOUT } from "@/api/apiEntpoint";
 
 /* Sidebar links */
 export const links = [
-  { name: "Dashboard Overview", icon: BiBarChartSquare, href: "/" },
-  { name: "Profile Generator", icon: GrUserSettings, href: "/user_settings" },
-  { name: "User management", icon: HiUsers, href: "/user_management" },
-  { name: "Payment Report", icon: TbReportAnalytics, href: "/payment_report" },
-  { name: "Settings", icon: IoSettings, href: "/settings" },
+  { name: "Dashboard Overview", icon: BiBarChartSquare, href: "/dashboard" },
+  {
+    name: "Profile Generator",
+    icon: GrUserSettings,
+    href: "/dashboard/user_settings",
+  },
+  {
+    name: "User management",
+    icon: HiUsers,
+    href: "/dashboard/user_management",
+  },
+  {
+    name: "Payment Report",
+    icon: TbReportAnalytics,
+    href: "/dashboard/payment_report",
+  },
+  { name: "Settings", icon: IoSettings, href: "/dashboard/settings" },
 ];
 
 export default function Sidebar({ isOpen, setIsOpen }) {
@@ -54,7 +66,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
             Authorization: `Bearer ${accessToken}`,
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       // Safer cookie removal
@@ -132,13 +144,15 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         {/* User info & Logout */}
         <div className="mt-auto">
           <div className="flex items-center gap-3 p-2 bg-white/10 rounded-2xl mb-4">
-            <Image
-              src={profile}
-              height={48}
-              width={48}
-              alt="User"
-              className="rounded-full object-cover border-2 border-white"
-            />
+            <div className="flex items-center justify-center">
+              <Image
+                src={profile}
+                height={48}
+                width={48}
+                alt="User"
+                className="rounded-full aspect-square object-cover border-2 border-white"
+              />
+            </div>
             <h3 className="text-sm lg:text-base font-semibold text-white truncate max-w-37.5">
               {user?.full_name || "Admin"}
             </h3>

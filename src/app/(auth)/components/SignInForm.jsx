@@ -100,7 +100,7 @@ export default function SignInForm({ setForgotPass }) {
       }
 
       toast.success("Login successful!");
-      setTimeout(() => router.push("/"), 1200);
+      setTimeout(() => router.push("/dashboard"), 1200);
     } catch (error) {
       toast.error(
         error.response?.data?.message ||

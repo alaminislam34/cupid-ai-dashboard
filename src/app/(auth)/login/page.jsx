@@ -4,6 +4,8 @@ import Image from "next/image";
 import ForgotPassword from "../components/ForgotPassword";
 import SignInForm from "../components/SignInForm";
 import { useState } from "react";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function SignIn() {
   const [forgotPass, setForgotPass] = useState(false);
@@ -30,11 +32,12 @@ export default function SignIn() {
           </div>
         </div>
         {forgotPass ? (
-          <ForgotPassword setForgotPass={setForgotPass} />
+            <ForgotPassword setForgotPass={setForgotPass} />
         ) : (
           <SignInForm setForgotPass={setForgotPass} />
         )}
       </section>
+        <ToastContainer position="top-right" pauseOnFocusLoss={false} />
     </div>
   );
 }

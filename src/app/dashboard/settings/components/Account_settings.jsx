@@ -5,6 +5,7 @@ import Cookies from "js-cookie";
 import Image from "next/image";
 import React, { useState } from "react";
 import { toast } from "react-toastify";
+import baseApi from "@/api/base_url";
 
 // Define the API endpoint base
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -92,18 +93,18 @@ export default function Account_settings() {
   return (
     <div>
       <div>
-        <div className="relative w-[110px] h-[110px] my-4">
+        <div className="relative w-28 h-28 my-4">
           {/* Profile Picture Display - uses imagePreviewUrl for local preview */}
           <Image
             src={imagePreviewUrl}
             height={110}
             width={110}
             alt="Profile picture"
-            className="rounded-full border-2 border-secondary object-cover w-[110px] h-[110px]"
+            className="rounded-full border-2 border-secondary object-cover w-28 h-28"
             priority // Use priority for important images like profile pictures
           />
 
-          <label className="absolute bottom-0 right-0 translate-x-1/4 translate-y-1/4 w-[50px] h-[50px] cursor-pointer">
+          <label className="absolute bottom-0 right-0 translate-x-1/4 translate-y-1/4 w-13 h-13 cursor-pointer">
             <input
               type="file"
               accept="image/*"

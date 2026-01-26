@@ -28,9 +28,52 @@ const processQueue = (error, token = null) => {
 };
 
 // --- 1. Request Interceptor: Add Authorization Header ---
+// Request interceptor: attach access token if present.
+// If access token is missing but a refresh token exists, try to refresh first.
 baseApi.interceptors.request.use(
-  (config) => {
-    const token = Cookies.get("accessToken");
+  async (config) => {
+    let token = Cookies.get("accessToken");
+    const refreshToken = Cookies.get("refreshToken");
+
+    // If there's no access token but we have a refresh token, attempt refresh
+    if (!token && refreshToken) {
+      // If another refresh is in progress, wait for it
+      if (isRefreshing) {
+        try {
+          token = await new Promise((resolve, reject) => {
+            failedQueue.push({ resolve, reject });
+          });
+        } catch (err) {
+          return Promise.reject(err);
+        }
+      } else {
+        isRefreshing = true;
+        try {
+          // Use plain axios with an absolute URL to avoid interceptor recursion
+          const refreshResponse = await axios.post(`${API_BASE_URL}${REFRESH_ENDPOINT}`, {
+            refresh: refreshToken,
+          });
+
+          const { access, refresh } = refreshResponse.data;
+
+          Cookies.set("accessToken", access);
+          Cookies.set("refreshToken", refresh);
+
+          baseApi.defaults.headers.common["Authorization"] = `Bearer ${access}`;
+          processQueue(null, access);
+          token = access;
+        } catch (refreshError) {
+          processQueue(refreshError);
+          Cookies.remove("accessToken");
+          Cookies.remove("refreshToken");
+          // Redirect to login if refresh fails
+          window.location.href = "/login";
+          return Promise.reject(refreshError);
+        } finally {
+          isRefreshing = false;
+        }
+      }
+    }
 
     if (token) {
       config.headers["Authorization"] = `Bearer ${token}`;

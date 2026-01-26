@@ -13,18 +13,26 @@ import { useAuth } from "@/provider/authProvider";
 export default function UserManagemenrt() {
   const [currentPage, setCurrentPage] = useState(1);
   const { totalUsers } = useAuth();
+  console.log(totalUsers);
   // --- 1. OVERVIEW DATA (Unchanged) ---
 
   const today = new Date();
 
-  const newUsers = totalUsers?.users?.filter((user) => {
-    const joinedDate = new Date(user.date_joined);
-    return (
-      joinedDate.getDate() === today.getDate() &&
-      joinedDate.getMonth() === today.getMonth() &&
-      joinedDate.getFullYear() === today.getFullYear()
-    );
-  }).length;
+  // Normalize users array - `totalUsers` may be an object with `users` or an array
+  const usersArray = Array.isArray(totalUsers)
+    ? totalUsers
+    : totalUsers?.users || [];
+
+  const newUsers = usersArray?.length
+    ? usersArray.filter((user) => {
+        const joinedDate = new Date(user.date_joined);
+        return (
+          joinedDate.getDate() === today.getDate() &&
+          joinedDate.getMonth() === today.getMonth() &&
+          joinedDate.getFullYear() === today.getFullYear()
+        );
+      }).length
+    : 0;
   const overviews = [
     {
       title: "Total Users",
@@ -38,26 +46,14 @@ export default function UserManagemenrt() {
     },
   ];
 
-  // --- 2. DUMMY USER DATA FOR PAGINATION ---
-  const ALL_USERS = Array.from({ length: 25 }, (_, i) => ({
-    name: `User ${i + 1}`,
-    username: `user_${i + 1}`,
-    email: `user${i + 1}@example.com`,
-    age: 20 + (i % 10),
-    gender: i % 2 === 0 ? "Male" : "Female",
-    subscription: i % 3 === 0 ? "Basic" : "Premium",
-  }));
+  const ITEMS_PER_PAGE = 10;
 
-  const ITEMS_PER_PAGE = 10; // Set the number of rows per page
+  const totalPages = Math.ceil((usersArray.length || 0) / ITEMS_PER_PAGE) || 1;
 
-  // Calculate total pages
-  const totalPages = Math.ceil(ALL_USERS.length / ITEMS_PER_PAGE);
-
-  // Determine the data slice for the current page
   const currentItems = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
     const end = start + ITEMS_PER_PAGE;
-    return ALL_USERS.slice(start, end);
+    return usersArray.slice(start, end);
   }, [currentPage]);
 
   // Handle page change
@@ -68,9 +64,10 @@ export default function UserManagemenrt() {
   };
 
   // Generate an array of page numbers
-  const pageNumbers = useMemo(() => {
-    return Array.from({ length: totalPages }, (_, i) => i + 1);
-  }, [totalPages]);
+  const pageNumbers = useMemo(
+    () => Array.from({ length: totalPages }, (_, i) => i + 1),
+    [totalPages],
+  );
 
   return (
     <div>
@@ -112,43 +109,51 @@ export default function UserManagemenrt() {
           </thead>
           <tbody className="text-gray-600 text-sm font-light divide-y divide-[#B9DAFE]">
             {/* Dynamically rendered rows */}
-            {currentItems.map((user, i) => (
-              <tr
-                key={i}
-                // Apply alternating background color
-                className={`${
-                  i % 2 === 1 ? "bg-gray-50" : "bg-white"
-                } *:border *:border-[#B9DAFE] hover:bg-gray-100`}
-              >
-                <td className="py-3 px-6 text-left whitespace-nowrap">
-                  {user.name}
-                </td>
-                <td className="py-3 px-6 text-left">{user.username}</td>
-                <td className="py-3 px-6 text-left">{user.email}</td>
-                <td className="py-3 px-6 text-left">{user.age}</td>
-                <td className="py-3 px-6 text-left">{user.gender}</td>
-                <td className="py-3 px-6 text-left">
-                  <button className="cursor-pointer">
-                    <RiDeleteBinLine className="text-2xl text-red-600 inline" />
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {currentItems?.map((user, i) => {
+              const displayName = user.full_name || user.name || "-";
+              const displayUsername =
+                user.username || (user.email ? user.email.split("@")[0] : "-");
+              const displayAge = user.age ?? "-";
+              const displayGender = user.gender || "-";
+
+              return (
+                <tr
+                  key={user.id ?? i}
+                  // Apply alternating background color
+                  className={`${i % 2 === 1 ? "bg-gray-50" : "bg-white"} *:border *:border-[#B9DAFE] hover:bg-gray-100`}
+                >
+                  <td className="py-3 px-6 text-left whitespace-nowrap">
+                    {displayName}
+                  </td>
+                  <td className="py-3 px-6 text-left">{displayUsername}</td>
+                  <td className="py-3 px-6 text-left">{user?.email || "-"}</td>
+                  <td className="py-3 px-6 text-left">{displayAge}</td>
+                  <td className="py-3 px-6 text-left">{displayGender}</td>
+                  <td className="py-3 px-6 text-left">
+                    {user.end?.can_delete ? (
+                      <button className="cursor-pointer">
+                        <RiDeleteBinLine className="text-2xl text-red-600 inline" />
+                      </button>
+                    ) : (
+                      <span className="text-gray-400">—</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
 
-        {/* Pagination Controls */}
         <div
           id="pagination-controls"
           className="flex justify-end mt-6 space-x-2"
         >
           <div className="flex items-center justify-center">
             <p className="text-secondary">
-              {currentPage} - {pageNumbers.length} of 10
+              {currentPage} - {pageNumbers.length} of {usersArray.length}
             </p>
           </div>
 
-          {/* Previous Button */}
           <button
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
@@ -161,7 +166,6 @@ export default function UserManagemenrt() {
             <FaChevronLeft />
           </button>
 
-          {/* Next Button */}
           <button
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}

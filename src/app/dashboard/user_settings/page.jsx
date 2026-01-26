@@ -17,17 +17,12 @@ export default function UserSettings() {
 
   const [gender, setGender] = useState("");
   const [ethnicity, setEthnicity] = useState("");
-  const [accessToken, setAccessToken] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const token = Cookies.get("accessToken");
-    if (token) {
-      setAccessToken(token);
-    } else {
-      console.log("No accessToken cookie found.");
-    }
+    // No client-only token handling here; `baseApi` handles attaching
+    // the Authorization header using cookies and refresh logic.
   }, []);
 
   const handleSubmit = async (e) => {
@@ -46,20 +41,14 @@ export default function UserSettings() {
     };
 
     console.log("Data to be sent:", profileData);
-
-    if (!accessToken) {
-      setError("Authorization failed: Access Token is missing.");
-      setLoading(false);
-      return;
-    }
-
     try {
-      const response = await baseApi.post(CREATE_BOT, profileData, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-      });
+      const payload = {
+        ...profileData,
+        age: Number(profileData.age) || 0,
+        height: Number(profileData.height) || 0,
+      };
+
+      const response = await baseApi.post(CREATE_BOT, payload);
 
       console.log("Profile Design Success:", response.data);
       toast.success("Profile designed successfully!");
@@ -157,7 +146,7 @@ export default function UserSettings() {
 
         <button
           type="submit"
-          disabled={loading || !accessToken}
+          disabled={loading}
           className="py-3 lg:py-5 w-full rounded-[20px] text-lg font-medium bg-linear-to-r from-[#FB665B] via-[#CE51A6] to-[#8951D5] text-white cursor-pointer disabled:opacity-50"
         >
           {loading ? "Designing..." : "+ Design"}

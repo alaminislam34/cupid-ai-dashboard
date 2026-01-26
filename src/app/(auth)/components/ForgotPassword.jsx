@@ -10,7 +10,7 @@ import {
 
 export default function ForgotPassword({ setForgotPass }) {
   const [email, setEmail] = useState("");
-  const [step, setStep] = useState("request"); // 'request' | 'reset'
+  const [step, setStep] = useState("request");
   const [isLoading, setIsLoading] = useState(false);
   const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
@@ -66,8 +66,9 @@ export default function ForgotPassword({ setForgotPass }) {
       setIsLoading(true);
       const res = await baseApi.post(PASSWORD_RESET_VERIFY, {
         email: email.trim(),
-        code: code.trim(),
+        otp: code.trim(),
         new_password: password,
+        confirm_password: confirmPassword,
       });
 
       toast.success(

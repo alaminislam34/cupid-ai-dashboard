@@ -11,44 +11,27 @@ export default function Bots_profile() {
   const [bots, setBots] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  // Define the function to fetch bot data
   const fetchBots = async () => {
-    // Check for token existence before fetching (quick initial check)
-    if (!Cookies.get("accessToken")) {
-      setError("Authorization failed: Access Token is missing.");
-      setLoading(false);
-      return;
-    }
-
     setLoading(true);
 
     try {
-      // 💡 Key Change: Use baseApi.get() with only the relative endpoint.
-      // The baseApi interceptor automatically handles:
-      // 1. Adding the Authorization header (Bearer token)
-      // 2. Refreshing the token if it's expired (401 error)
       const response = await baseApi.get(ALL_BOTS_DATA);
 
-      // Check the response structure based on the sample data provided: { bots: [...] }
       if (response.data && Array.isArray(response.data.bots)) {
-        // Map to get the 'bot' object from each item: item => item.bot
         const botProfiles = response.data.bots.map((item) => item.bot);
         setBots(botProfiles);
         setError(null);
       } else {
         setBots([]);
-        // Handle cases where the API returns data but not in the expected format
         setError(
-          "API response structure is invalid or 'bots' array is missing."
+          "API response structure is invalid or 'bots' array is missing.",
         );
       }
     } catch (err) {
       console.error("Error fetching bot data:", err);
-      // The error here is usually after the baseApi interceptor failed to refresh/retry.
       setError(
         err.response?.data?.detail ||
-          "Failed to load bots. Please log in again."
+          "Failed to load bots. Please log in again.",
       );
     } finally {
       setLoading(false);
@@ -57,10 +40,7 @@ export default function Bots_profile() {
 
   useEffect(() => {
     fetchBots();
-    // Dependency array is empty, runs only on mount.
   }, []);
-
-  // --- Render States ---
 
   if (loading) {
     return (
@@ -86,7 +66,6 @@ export default function Bots_profile() {
     );
   }
 
-  // --- Main Content Rendering ---
   return (
     <div>
       <div className="flex items-center justify-between">
@@ -98,7 +77,6 @@ export default function Bots_profile() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 items-center gap-6">
         {bots.map((bot, index) => {
-          // Process interests string into an array, ensuring cleanliness
           const interests = (bot.interest || "")
             .split(",")
             .map((i) => i.trim())
@@ -110,12 +88,11 @@ export default function Bots_profile() {
               className="border p-4 h-full rounded-2xl border-secondary/10 shadow-[0px_10px_35px_0px_#00000008]"
             >
               <Image
-                src={bot.profile_picture || "/images/bot.jpg"}
+                src={bot?.profile_picture}
                 height={221}
                 width={200}
                 alt={`${bot.name}'s Profile picture`}
                 className="mx-auto aspect-square rounded-2xl object-cover"
-                // Added 'unoptimized' and 'priority' for potentially external/dynamic images
                 priority
               />
 
@@ -126,13 +103,8 @@ export default function Bots_profile() {
               <div className="space-y-4">
                 <h4 className="font-bold">About</h4>
                 <p>
-                  {/* Prioritize description, fallback to constructing it from fields */}
                   {bot.description ||
-                    `A ${bot.gender} bot who is ${
-                      bot.age
-                    } years old and enjoys ${
-                      bot.interest || "various activities"
-                    }.`}
+                    `A ${bot.gender} bot who is ${bot.age} years old and enjoys ${bot.interest || "various activities"}.`}
                 </p>
 
                 <h4 className="font-bold">Interest</h4>

@@ -43,7 +43,7 @@ const fetchMetrics = async (endpoint) => {
   } catch (error) {
     console.error(
       `Failed to fetch ${endpoint}:`,
-      error.response?.data || error.message
+      error.response?.data || error.message,
     );
     return 0;
   }
@@ -74,7 +74,7 @@ export function AuthProvider({ children }) {
     } catch (error) {
       console.error(
         "Token verification failed or User details fetch error:",
-        error
+        error,
       );
       // Clean up manually if the interceptor failed to handle the refresh
       Cookies.remove("accessToken");
@@ -109,6 +109,7 @@ export function AuthProvider({ children }) {
 
       // 💡 CHANGE 3: The fetchMetrics helper now uses baseApi internally.
       const users = await fetchMetrics(ADMIN_TOTAL_USERS);
+
       const bots = await fetchMetrics(ADMIN_TOTAL_BOTS);
 
       setTotalUsers(users);
@@ -135,7 +136,7 @@ export function AuthProvider({ children }) {
       totalBots,
       totalUsers,
       refreshAdminMetrics,
-    ]
+    ],
   );
 
   return (

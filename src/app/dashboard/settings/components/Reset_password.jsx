@@ -140,9 +140,7 @@ export default function Reset_password() {
         {step === STEPS.EMAIL_INPUT && (
           <div className="flex flex-col gap-4">
             <label className="flex flex-col gap-2 flex-1">
-              <span className="text-secondary lg:text-xl font-medium">
-                Email Address
-              </span>
+              <span className="text-secondary lg:text-xl font-medium">Email Address</span>
               <input
                 type="email"
                 name="email"
@@ -153,9 +151,7 @@ export default function Reset_password() {
                 disabled={isLoading}
               />
             </label>
-            <p className="text-sm text-gray-500">
-              Enter your email to receive a password reset code.
-            </p>
+            <p className="text-sm text-gray-500">Enter your email to receive a password reset code.</p>
           </div>
         )}
 
@@ -164,9 +160,7 @@ export default function Reset_password() {
           <>
             <div className="flex flex-col gap-4">
               <label className="flex flex-col gap-2 flex-1">
-                <span className="text-secondary lg:text-xl font-medium">
-                  OTP Code
-                </span>
+                <span className="text-secondary lg:text-xl font-medium">OTP Code</span>
                 <input
                   type="text"
                   name="otp"
@@ -181,9 +175,7 @@ export default function Reset_password() {
             </div>
             <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-center">
               <label className="flex flex-col gap-2 flex-1">
-                <span className="text-secondary lg:text-xl font-medium">
-                  New Password
-                </span>
+                <span className="text-secondary lg:text-xl font-medium">New Password</span>
                 <input
                   type="password"
                   name="new_password"
@@ -195,9 +187,7 @@ export default function Reset_password() {
                 />
               </label>
               <label className="flex flex-col gap-2 flex-1">
-                <span className="text-secondary lg:text-xl font-medium">
-                  Confirm New Password
-                </span>
+                <span className="text-secondary lg:text-xl font-medium">Confirm New Password</span>
                 <input
                   type="password"
                   name="confirm_password"
