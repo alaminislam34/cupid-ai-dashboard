@@ -219,7 +219,7 @@ export default function SignInForm({ setForgotPass }) {
                 <button
                   type="button"
                   onClick={() => setForgotPass(true)}
-                  className="text-sm text-purple-600 hover:text-purple-700 font-medium transition-colors"
+                  className="text-sm text-primary hover:text-primary/90 font-medium transition-colors"
                 >
                   Forgot Password?
                 </button>
