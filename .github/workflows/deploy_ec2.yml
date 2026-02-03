@@ -18,20 +18,22 @@ jobs:
         with:
           node-version: 18
 
-      - name: Install deps & build locally
+      - name: Install deps & build
         run: |
           npm ci
           npm run build
 
-      - name: Copy project to EC2
+      - name: Copy necessary files to EC2
         uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_SSH_PORT }}
-          source: "."
+          source: ".next,public,package.json,package-lock.json,next.config.js,next.config.mjs"
           target: "/home/${{ secrets.EC2_USER }}/dashboard"
+          strip_components: 0
+          rm: true
 
       - name: Restart Next.js app on EC2
         uses: appleboy/ssh-action@v1.0.3
@@ -42,7 +44,8 @@ jobs:
           port: ${{ secrets.EC2_SSH_PORT }}
           script: |
             cd /home/${{ secrets.EC2_USER }}/dashboard
-            npm ci
-            npm run build
+            npm ci --production
             pm2 restart cupid-ai-dashboard || pm2 start npm --name "cupid-ai-dashboard" -- run start
             pm2 save
+            pm2 startup
+            echo "Deployment to EC2 completed."
