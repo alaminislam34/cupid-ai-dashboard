@@ -74,7 +74,6 @@ export default function ForgotPassword({ setForgotPass }) {
       toast.success(
         res.data?.message || "Password reset successful. Please sign in.",
       );
-      // close forgot flow and return to sign in
       setForgotPass?.(false);
     } catch (error) {
       console.error("Error verifying reset:", error);

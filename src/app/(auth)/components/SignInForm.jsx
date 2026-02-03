@@ -13,7 +13,7 @@ import { OTP_REQUEST, OTP_VERIFY } from "@/api/apiEntpoint";
 /* ---------------- Validation Schema ---------------- */
 const signInSchema = z.object({
   email: z.string().min(1, "Email is required").email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string().min(3, "Password must be at least 6 characters"),
   otp: z.string().optional(),
 });
 
