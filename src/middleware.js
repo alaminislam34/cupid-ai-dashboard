@@ -5,7 +5,7 @@ export function middleware(request) {
   const { pathname } = request.nextUrl;
   const accessToken = request.cookies.get("accessToken")?.value;
 
-  const authPages = ["/login", "/register"];
+  const authPages = ["/login"];
   const publicAssets = ["/_next/", "/images/", "/icons/", "/favicon.ico"];
 
   // Allow static assets

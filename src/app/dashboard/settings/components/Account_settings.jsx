@@ -62,8 +62,7 @@ export default function Account_settings() {
     try {
       const res = await baseApi.patch(PROFILE_UPDATE, formData, {
         headers: {
-          // NOTE: Do NOT set 'Content-Type': 'application/json' when sending FormData.
-          // Axios will automatically set it to 'multipart/form-data' with the correct boundary.
+          "Content-Type": "multipart/form-data",
           authorization: `Bearer ${Cookies.get("accessToken")}`,
         },
       });
@@ -71,7 +70,6 @@ export default function Account_settings() {
       if (res.status === 200) {
         toast.success("Profile updated successfully! ✨");
       } else {
-        // Handle unexpected success status codes (e.g., 201) if necessary
         toast.error("Profile update failed with an unexpected status.");
       }
     } catch (err) {
