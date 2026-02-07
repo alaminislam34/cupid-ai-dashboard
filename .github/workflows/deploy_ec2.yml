@@ -13,17 +13,17 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
 
-      - name: Install deps & build
+      - name: Install dependencies & build
         run: |
           npm ci
           npm run build
 
-      - name: Copy necessary files to EC2
+      - name: Copy build files to EC2
         uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -31,11 +31,10 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_SSH_PORT }}
           source: ".next,public,package.json,package-lock.json,next.config.js,next.config.mjs"
-          target: "/home/${{ secrets.EC2_USER }}/dashboard"
-          strip_components: 0
+          target: "/home/${{ secrets.EC2_USER }}/cupid-ai-dashboard"
           rm: true
 
-      - name: Restart Next.js app on EC2
+      - name: Restart Next.js app on EC2 with PM2
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -43,9 +42,8 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_SSH_PORT }}
           script: |
-            cd /home/${{ secrets.EC2_USER }}/dashboard
+            cd /home/${{ secrets.EC2_USER }}/cupid-ai-dashboard
             npm ci --production
             pm2 restart cupid-ai-dashboard || pm2 start npm --name "cupid-ai-dashboard" -- run start
             pm2 save
-            pm2 startup
-            echo "Deployment to EC2 completed."
+            echo "✅ Deployment completed successfully"
