@@ -14,7 +14,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2️⃣ Copy source code to EC2
+      # 2️⃣ Debug GitHub Runner - check files exist
+      - name: Check files before SCP
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "List files:"
+          ls -la
+          echo "Check .next folder (if exists):"
+          if [ -d ".next" ]; then
+            echo ".next exists"
+          else
+            echo ".next NOT FOUND (build will happen on EC2)"
+          fi
+
+      # 3️⃣ Copy source code to EC2
       - name: Copy source to EC2
         uses: appleboy/scp-action@v0.1.4
         with:
@@ -49,7 +63,7 @@ jobs:
           proxy_timeout: 30s
           proxy_use_insecure_cipher: false
 
-      # 3️⃣ Install dependencies, build & restart app on EC2
+      # 4️⃣ Install, build & restart app on EC2
       - name: Install, build & restart app on EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -58,9 +72,21 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_SSH_PORT }}
           script: |
+            echo "✅ Connected to EC2"
             cd /home/${{ secrets.EC2_USER }}/cupid-ai-dashboard
+            echo "List folder contents:"
+            ls -la
+            echo "Node version:"
+            node -v
+            echo "NPM version:"
+            npm -v
+            echo "PM2 version:"
+            pm2 -v || echo "PM2 not installed"
+            echo "Installing dependencies..."
             npm ci
+            echo "Building project..."
             npm run build
+            echo "Restarting app via PM2..."
             pm2 restart cupid-ai-dashboard || pm2 start npm --name "cupid-ai-dashboard" -- run start
             pm2 save
             echo "✅ Deployment completed successfully"
