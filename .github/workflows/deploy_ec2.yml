@@ -1,92 +1,96 @@
 name: Deploy Next.js Dashboard to EC2
-
+ 
 on:
+
   push:
+
     branches:
+
       - main
-
+ 
 jobs:
+
   deploy:
+
     runs-on: ubuntu-latest
-
+ 
     steps:
+
       # 1️⃣ Checkout repository
+
       - name: Checkout repository
+
         uses: actions/checkout@v4
+ 
+      # 2️⃣ Copy source code to EC2
 
-      # 2️⃣ Debug GitHub Runner - check files exist
-      - name: Check files before SCP
-        run: |
-          echo "Current directory:"
-          pwd
-          echo "List files:"
-          ls -la
-          echo "Check .next folder (if exists):"
-          if [ -d ".next" ]; then
-            echo ".next exists"
-          else
-            echo ".next NOT FOUND (build will happen on EC2)"
-          fi
-
-      # 3️⃣ Copy source code to EC2
       - name: Copy source to EC2
-        uses: appleboy/scp-action@v0.1.4
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          port: ${{ secrets.EC2_SSH_PORT }}
 
-          # Copy everything except node_modules
+        uses: appleboy/scp-action@v0.1.4
+
+        with:
+
+          host: ${{ secrets.EC2_HOST }}
+
+          username: ${{ secrets.EC2_USER }}
+
+          key: ${{ secrets.EC2_SSH_KEY }}
+
+          port: 22  # Hardcoded to 22 to fix "unknown port" error
+
           source: ".,!node_modules"
+
           target: "/home/${{ secrets.EC2_USER }}/cupid-ai-dashboard"
 
-          # File handling
+          # Standardize transfer settings
+
           rm: false
-          overwrite: false
+
           strip_components: 0
-          tar_dereference: false
-          tar_exec: tar
 
-          # Debug & timeout
           debug: true
-          timeout: 30s
-          command_timeout: 10m
-          use_insecure_cipher: false
+ 
+      # 3️⃣ Install, build & restart app on EC2
 
-          # Proxy (optional)
-          proxy_host: ${{ secrets.PROXY_HOST }}
-          proxy_port: ${{ secrets.PROXY_PORT }}
-          proxy_username: ${{ secrets.PROXY_USERNAME }}
-          proxy_password: ${{ secrets.PROXY_PASSWORD }}
-          proxy_passphrase: ${{ secrets.PROXY_PASSPHRASE }}
-          proxy_timeout: 30s
-          proxy_use_insecure_cipher: false
-
-      # 4️⃣ Install, build & restart app on EC2
       - name: Install, build & restart app on EC2
+
         uses: appleboy/ssh-action@v1.0.3
+
         with:
+
           host: ${{ secrets.EC2_HOST }}
+
           username: ${{ secrets.EC2_USER }}
+
           key: ${{ secrets.EC2_SSH_KEY }}
-          port: ${{ secrets.EC2_SSH_PORT }}
+
+          port: 22 # Hardcoded to 22
+
           script: |
-            echo "✅ Connected to EC2"
+
+            # Use login shell to ensure node/npm/pm2 paths are loaded
+
+            export NVM_DIR="$HOME/.nvm"
+
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+ 
             cd /home/${{ secrets.EC2_USER }}/cupid-ai-dashboard
-            echo "List folder contents:"
-            ls -la
-            echo "Node version:"
-            node -v
-            echo "NPM version:"
-            npm -v
-            echo "PM2 version:"
-            pm2 -v || echo "PM2 not installed"
+
             echo "Installing dependencies..."
-            npm ci
+
+            npm install  # Using install instead of ci for faster cache handling on small servers
+
             echo "Building project..."
+
             npm run build
+
             echo "Restarting app via PM2..."
-            pm2 restart cupid-ai-dashboard || pm2 start npm --name "cupid-ai-dashboard" -- run start
+
+            # Note: Using the name "cupid-frontend" to match your previous setup
+
+            pm2 restart cupid-frontend || pm2 start npm --name "cupid-frontend" -- start
+
             pm2 save
+
             echo "✅ Deployment completed successfully"
+ 
