@@ -7,28 +7,22 @@ import React, { useState } from "react";
 import { toast } from "react-toastify";
 import baseApi from "@/api/base_url";
 
-// Define the API endpoint base
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function Account_settings() {
-  // State for text inputs (First and Last Name)
   const [profileData, setProfileData] = useState({
     firstName: "",
     lastName: "",
   });
-  // State for the actual File object to be uploaded
   const [profileImageFile, setProfileImageFile] = useState(null);
-  // State for the local preview URL of the image
   const [imagePreviewUrl, setImagePreviewUrl] = useState("/images/welcome.png");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Handle text input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setProfileData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handle file input changes
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -37,7 +31,6 @@ export default function Account_settings() {
     }
   };
 
-  // Handle the form submission
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     const { firstName, lastName } = profileData;
